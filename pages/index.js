@@ -187,7 +187,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
               />
               <text
                 x={x}
-                y={y}
+                cy={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={getTextColor(item)}
@@ -657,7 +657,7 @@ export default function Game() {
       }
     }
     
-    setMessage({ text: `⏭️ PASAPALABRA! ${playersCount === 2 ? `Turno Jugador ${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
+    setMessage({ text: `⏭️ PASAPALABRA! ${playersCount === 2 ? `Turno J${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
     setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     
     setTime(QUESTION_TIME);
@@ -762,36 +762,34 @@ export default function Game() {
         <Head>
           <title>Pasapalabra Venezuela</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
-          <meta name="description" content="Juego de Pasapalabra con palabras venezolanas" />
         </Head>
-        <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)", marginBottom: "10px" }}>🎙️ Pasapalabra<br/>Venezuela 🎙️</h1>
-          <p style={{ marginBottom: "30px", fontSize: "clamp(14px, 4vw, 18px)", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
+        <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
+          <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>🎙️ Pasapalabra Venezuela 🎙️</h1>
+          <p style={{ marginBottom: "30px", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
 
           <div style={{ marginBottom: "30px" }}>
             <h3>👥 Jugadores</h3>
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-              <button onClick={() => setPlayersCount(1)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: playersCount === 1 ? "#2196F3" : "#fff", color: playersCount === 1 ? "#fff" : "#333", borderColor: playersCount === 1 ? "#2196F3" : "#ccc" }}>1 jugador</button>
-              <button onClick={() => setPlayersCount(2)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: playersCount === 2 ? "#2196F3" : "#fff", color: playersCount === 2 ? "#fff" : "#333", borderColor: playersCount === 2 ? "#2196F3" : "#ccc" }}>2 jugadores</button>
+              <button onClick={() => setPlayersCount(1)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: playersCount === 1 ? "#2196F3" : "#fff", color: playersCount === 1 ? "#fff" : "#333", borderColor: playersCount === 1 ? "#2196F3" : "#ccc" }}>1 jugador</button>
+              <button onClick={() => setPlayersCount(2)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: playersCount === 2 ? "#2196F3" : "#fff", color: playersCount === 2 ? "#fff" : "#333", borderColor: playersCount === 2 ? "#2196F3" : "#ccc" }}>2 jugadores</button>
             </div>
           </div>
 
           <div style={{ marginBottom: "30px" }}>
             <h3>📚 Dificultad</h3>
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
-              <button onClick={() => setDifficulty("easy")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff", color: difficulty === "easy" ? "#fff" : "#333", borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc" }}>Fácil</button>
-              <button onClick={() => setDifficulty("medium")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff", color: difficulty === "medium" ? "#fff" : "#333", borderColor: difficulty === "medium" ? "#FF9800" : "#ccc" }}>Medio</button>
-              <button onClick={() => setDifficulty("hard")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: difficulty === "hard" ? "#f44336" : "#fff", color: difficulty === "hard" ? "#fff" : "#333", borderColor: difficulty === "hard" ? "#f44336" : "#ccc" }}>Difícil</button>
+              <button onClick={() => setDifficulty("easy")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff", color: difficulty === "easy" ? "#fff" : "#333", borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc" }}>Fácil</button>
+              <button onClick={() => setDifficulty("medium")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff", color: difficulty === "medium" ? "#fff" : "#333", borderColor: difficulty === "medium" ? "#FF9800" : "#ccc" }}>Medio</button>
+              <button onClick={() => setDifficulty("hard")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: difficulty === "hard" ? "#f44336" : "#fff", color: difficulty === "hard" ? "#fff" : "#333", borderColor: difficulty === "hard" ? "#f44336" : "#ccc" }}>Difícil</button>
             </div>
           </div>
 
-          <button onClick={startGame} style={{ padding: "15px 30px", fontSize: "clamp(16px, 5vw, 20px)", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "30px" }}>🎮 Empezar Partida</button>
+          <button onClick={startGame} style={{ padding: "15px 30px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🎮 Empezar Partida</button>
           
-          <div style={{ textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "20px" }}>
-            <h3 style={{ marginTop: 0 }}>📖 Reglas:</h3>
-            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: 1.8 }}>
+          <div style={{ textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "30px" }}>
+            <h3>📖 Reglas:</h3>
+            <ul style={{ lineHeight: 1.8 }}>
               <li>📌 Cada jugador tiene su propio rosco</li>
-              <li>🎯 Empieza el Jugador 1 desde la letra A</li>
               <li>✅ Acierto: suma punto y continúa</li>
               <li>❌ Fallo/tiempo: NO suma punto, pasa turno (2P)</li>
               <li>⏭️ PASAPALABRA: pasa letra a 2da ronda</li>
@@ -802,9 +800,9 @@ export default function Game() {
             </ul>
           </div>
 
-          <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px", borderTop: "2px solid #ddd" }}>
-            <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px" }}>Designed by Armando Guillen - Copyright 2026</p>
-            <p style={{ fontSize: "12px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game) - All rights remain with their corresponding owners.</p>
+          <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px" }}>
+            <p style={{ fontSize: "14px", fontWeight: "bold" }}>Designed by Armando Guillen - Copyright 2026</p>
+            <p style={{ fontSize: "12px" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
         </div>
       </>
@@ -833,36 +831,34 @@ export default function Game() {
     
     return (
       <>
-        <Head><title>Pasapalabra - Resultados</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
-        <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <h1 style={{ fontSize: "clamp(24px, 6vw, 36px)", textAlign: "center" }}>🏆 RESULTADOS 🏆</h1>
-          {winner === 1 && <h2 style={{ fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center" }}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
-          {winner === 2 && <h2 style={{ fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center" }}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
-          {winner === 0 && <h2 style={{ fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center" }}>🤝 ¡EMPATE! 🤝</h2>}
+        <Head><title>Resultados</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
+        <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
+          <h1 style={{ textAlign: "center" }}>🏆 RESULTADOS 🏆</h1>
+          {winner === 1 && <h2 style={{ textAlign: "center", color: "#2196F3" }}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
+          {winner === 2 && <h2 style={{ textAlign: "center", color: "#FF9800" }}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
+          {winner === 0 && <h2 style={{ textAlign: "center" }}>🤝 ¡EMPATE! 🤝</h2>}
           
-          <div style={{ overflowX: "auto", marginBottom: "30px" }}>
+          <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>⭐ Puntos</th></tr></thead>
+              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntos</th></tr></thead>
               <tbody>
-                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#f44336" }}>{p1Wrong}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#FFC107" }}>{p1Passed}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td></tr>
-                {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td></tr>)}
+                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td></tr>
+                {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td></tr>)}
               </tbody>
             </table>
           </div>
           
-          <div style={{ backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", marginBottom: "30px" }}>
+          <div style={{ backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", margin: "30px 0" }}>
             <h3>📋 Resumen:</h3>
-            <p>🎯 Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos, {p1Passed} pasadas</p>
-            {twoPlayer && <p>🎯 Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
-            <p>🇻🇪 2-3 palabras venezolanas por rosco</p>
-            <p>⏱️ 30 segundos por pregunta</p>
+            <p>Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos, {p1Passed} pasadas</p>
+            {twoPlayer && <p>Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
           </div>
           
-          <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ padding: "15px 30px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "20px" }}>🔄 Jugar de Nuevo</button>
+          <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ width: "100%", padding: "15px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🔄 Jugar de Nuevo</button>
           
-          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", borderTop: "1px solid #eee", backgroundColor: "#fafafa", borderRadius: "8px" }}>
-            <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "4px" }}>Designed by Armando Guillen - Copyright 2026</p>
-            <p style={{ fontSize: "10px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
+            <p>Designed by Armando Guillen - Copyright 2026</p>
+            <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
         </div>
       </>
@@ -881,70 +877,69 @@ export default function Game() {
         <title>Pasapalabra - J{game.currentPlayer}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
       </Head>
-      <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+      <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto" }}>
         {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px", flexWrap: "wrap" }}>
-          <div style={{ padding: "8px 12px", borderRadius: "10px", textAlign: "center", flex: 1, minWidth: "70px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
-            <div style={{ fontWeight: "bold", fontSize: "12px" }}>👤 J1</div>
-            <div style={{ fontSize: "clamp(20px, 6vw, 28px)", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
-            <div style={{ fontSize: "9px", color: "#666" }}>✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[1].rosco.filter(r => r.passed).length}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px" }}>
+          <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
+            <div style={{ fontWeight: "bold", fontSize: "12px" }}>J1</div>
+            <div style={{ fontSize: "24px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
+            <div style={{ fontSize: "9px" }}>✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length}</div>
           </div>
           
-          <div style={{ textAlign: "center", flex: 1 }}>
-            <div style={{ fontSize: "clamp(28px, 7vw, 42px)", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>⏱️ {time}s</div>
-            <div style={{ fontSize: "10px", fontWeight: "bold", color: "#2196F3" }}>🎯 R{game.round} J{game.currentPlayer}</div>
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div style={{ fontSize: "32px", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>{time}s</div>
+            <div style={{ fontSize: "10px", fontWeight: "bold" }}>R{game.round} J{game.currentPlayer}</div>
           </div>
           
           {game.players[2] && (
-            <div style={{ padding: "8px 12px", borderRadius: "10px", textAlign: "center", flex: 1, minWidth: "70px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
-              <div style={{ fontWeight: "bold", fontSize: "12px" }}>👤 J2</div>
-              <div style={{ fontSize: "clamp(20px, 6vw, 28px)", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={{ fontSize: "9px", color: "#666" }}>✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[2].rosco.filter(r => r.passed).length}</div>
+            <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
+              <div style={{ fontWeight: "bold", fontSize: "12px" }}>J2</div>
+              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
+              <div style={{ fontSize: "9px" }}>✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length}</div>
             </div>
           )}
         </div>
 
-        {/* Rosco */}
+        {/* Circular Rosco */}
         <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} isMobile={isMobile} />
 
-        {/* Question */}
-        <div style={{ borderRadius: "15px", padding: "clamp(12px, 4vw, 20px)", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
-          {currentItem.isSlang && <div style={{ fontSize: "12px", color: "#FF9800", marginBottom: "5px", fontWeight: "bold" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
-          <div style={{ fontSize: "11px", color: "#666", marginBottom: "5px" }}>Letra {currentItem.letter} ({remainingCount} rest, {passedCount} pasadas)</div>
-          <div style={{ fontSize: "clamp(16px, 5vw, 20px)", fontWeight: "bold", lineHeight: 1.4 }}>{currentItem.question}</div>
+        {/* Question Card */}
+        <div style={{ borderRadius: "15px", padding: "20px", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
+          {currentItem.isSlang && <div style={{ fontSize: "13px", color: "#FF9800", fontWeight: "bold" }}>🇻🇪 Palabra Venezolana</div>}
+          <div style={{ fontSize: "12px", color: "#666", marginBottom: "5px" }}>Letra {currentItem.letter} ({remainingCount} rest, {passedCount} pasadas)</div>
+          <div style={{ fontSize: "18px", fontWeight: "bold" }}>{currentItem.question}</div>
         </div>
 
-        {/* Input and Buttons */}
+        {/* Input and Buttons - FORCED TO SHOW ON ALL DEVICES */}
         {!showAnswer && (
           <div style={{ marginBottom: "15px" }}>
             <input
-              style={{ fontSize: "clamp(14px, 4vw, 16px)", padding: "12px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", width: "100%", boxSizing: "border-box", marginBottom: "10px" }}
+              style={{ width: "100%", padding: "15px", fontSize: "16px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "10px" }}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribe tu respuesta..."
               autoFocus
             />
-            <div style={{ display: "flex", gap: "10px", flexDirection: isMobile ? "column" : "row" }}>
-              <button onClick={answer} style={{ flex: 1, padding: "12px", fontSize: "clamp(14px, 4vw, 16px)", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>📝 Responder</button>
-              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "12px", fontSize: "clamp(14px, 4vw, 16px)", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>⏭️ PASAPALABRA</button>
+            <div style={{ display: "flex", gap: "10px", flexDirection: "row" }}>
+              <button onClick={answer} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>📝 Responder</button>
+              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>⏭️ PASAPALABRA</button>
             </div>
           </div>
         )}
 
         {/* Message */}
         {message.text && (
-          <div style={{ marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontSize: "clamp(13px, 4vw, 15px)", fontWeight: "bold", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
+          <div style={{ marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontWeight: "bold", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
             {message.text}
           </div>
         )}
 
         {/* Legend */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "clamp(8px, 3vw, 15px)", fontSize: "clamp(9px, 3vw, 11px)", flexWrap: "wrap", borderTop: "1px solid #ddd", paddingTop: "12px", marginTop: "5px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", fontSize: "10px", borderTop: "1px solid #ddd", paddingTop: "12px" }}>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px" }}></span> Pendiente</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "4px" }}></span> Correcto</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "4px" }}></span> Incorrecto</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "4px" }}></span> Pasapalabra</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
       </div>
     </>
