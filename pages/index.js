@@ -916,7 +916,7 @@ export default function Game() {
                     <td style={styles.td}><strong>Jugador 2</strong></td>
                     <td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p2Correct}</td>
                     <td style={{...styles.td, color: "#f44336"}}>{p2Wrong}</td>
-                    <td style={{...styles.td, color: "#FFC107"}}>{p2Passed}</td>
+ <td style={{...styles.td, color: "#FFC107"}}>{p2Passed}</td>
                     <td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#FF9800"}}>{p2Score}</td>
                   <tr>
                 )}
