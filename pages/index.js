@@ -105,11 +105,14 @@ function buildRosco(difficulty, seedOffset = 0) {
 }
 
 function findNextLetter(rosco, currentIndex) {
-  // Simply go to next letter in alphabet (A->B->C...)
   for (let i = currentIndex + 1; i < rosco.length; i++) {
     return i;
   }
-  return -1; // End of rosco
+  return -1;
+}
+
+function findCurrentLetterIndex(rosco, currentLetter) {
+  return rosco.findIndex(item => item.letter === currentLetter);
 }
 
 /* =========================
@@ -164,7 +167,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
               />
               <text
                 x={x}
-                y={y}
+                cy={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={getTextColor(item.status)}
@@ -254,15 +257,16 @@ export default function Game() {
 
     setGame({
       currentPlayer: 1,
-      currentLetterIndex: 0,
       players: {
         1: { 
           rosco: p1Rosco.map(item => ({ ...item, status: "pending" })), 
+          currentIndex: 0,
           score: 0,
           completed: false
         },
         2: p2Rosco ? { 
           rosco: p2Rosco.map(item => ({ ...item, status: "pending" })), 
+          currentIndex: 0,
           score: 0,
           completed: false
         } : null
@@ -284,11 +288,11 @@ export default function Game() {
     
     const currentPlayer = game.currentPlayer;
     const player = game.players[currentPlayer];
-    const currentItem = player.rosco[game.currentLetterIndex];
+    const currentItem = player.rosco[player.currentIndex];
     
-    // Mark as wrong (don't change index, just mark status)
+    // Mark as wrong
     const updatedRosco = [...player.rosco];
-    updatedRosco[game.currentLetterIndex] = {
+    updatedRosco[player.currentIndex] = {
       ...currentItem,
       status: "wrong"
     };
@@ -299,11 +303,11 @@ export default function Game() {
       type: "error" 
     });
     
-    // Move to next letter (regardless of wrong answer)
-    const nextIndex = findNextLetter(updatedRosco, game.currentLetterIndex);
+    // Move to next letter for THIS player
+    const nextIndex = findNextLetter(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
-      // End of rosco - game ends
+      // Player completed their rosco
       setGame(prev => ({
         ...prev,
         players: {
@@ -315,27 +319,46 @@ export default function Game() {
           }
         }
       }));
-      
-      setTimeout(() => {
-        endGame();
-      }, 2000);
     } else {
-      // Move to next letter, same player continues
+      // Update player's progress
       setGame(prev => ({
         ...prev,
-        currentLetterIndex: nextIndex,
         players: {
           ...prev.players,
           [currentPlayer]: {
             ...player,
-            rosco: updatedRosco
+            rosco: updatedRosco,
+            currentIndex: nextIndex
           }
         }
       }));
-      setTime(QUESTION_TIME);
     }
     
     wrongSound.current?.play();
+    
+    // SWITCH PLAYER after wrong answer (for 2-player mode)
+    if (playersCount === 2 && !gameFinished) {
+      const nextPlayer = currentPlayer === 1 ? 2 : 1;
+      const nextPlayerData = game.players[nextPlayer];
+      
+      // Check if next player has completed their rosco
+      if (nextPlayerData.completed) {
+        // Game ends if both players have completed
+        if (currentPlayer === 1 && nextPlayerData.completed) {
+          setTimeout(() => endGame(), 2000);
+        } else {
+          setGame(prev => ({
+            ...prev,
+            currentPlayer: nextPlayer
+          }));
+        }
+      } else {
+        setGame(prev => ({
+          ...prev,
+          currentPlayer: nextPlayer
+        }));
+      }
+    }
     
     setTimeout(() => {
       setShowAnswer(false);
@@ -343,6 +366,7 @@ export default function Game() {
     }, 2000);
     
     setInput("");
+    setTime(QUESTION_TIME);
   };
 
   const handleCorrectAnswer = () => {
@@ -350,20 +374,20 @@ export default function Game() {
     
     const currentPlayer = game.currentPlayer;
     const player = game.players[currentPlayer];
-    const currentItem = player.rosco[game.currentLetterIndex];
+    const currentItem = player.rosco[player.currentIndex];
     
     // Mark as correct
     const updatedRosco = [...player.rosco];
-    updatedRosco[game.currentLetterIndex] = {
+    updatedRosco[player.currentIndex] = {
       ...currentItem,
       status: "correct"
     };
     
     // Move to next letter
-    const nextIndex = findNextLetter(updatedRosco, game.currentLetterIndex);
+    const nextIndex = findNextLetter(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
-      // End of rosco - game ends
+      // Player completed their rosco
       setGame(prev => ({
         ...prev,
         players: {
@@ -379,19 +403,30 @@ export default function Game() {
       
       setMessage({ text: `🎉 ¡Jugador ${currentPlayer} completó el ROSCO! 🎉`, type: "success" });
       
-      setTimeout(() => {
-        endGame();
-      }, 2000);
+      // Check if game should end
+      const otherPlayer = currentPlayer === 1 ? 2 : 1;
+      if (playersCount === 1 || game.players[otherPlayer]?.completed) {
+        setTimeout(() => endGame(), 2000);
+      } else {
+        // Switch to other player after completion
+        setTimeout(() => {
+          setGame(prev => ({
+            ...prev,
+            currentPlayer: otherPlayer
+          }));
+          setTime(QUESTION_TIME);
+        }, 2000);
+      }
     } else {
-      // Move to next letter, same player continues
+      // Same player continues to next letter
       setGame(prev => ({
         ...prev,
-        currentLetterIndex: nextIndex,
         players: {
           ...prev.players,
           [currentPlayer]: {
             ...player,
             rosco: updatedRosco,
+            currentIndex: nextIndex,
             score: player.score + 1
           }
         }
@@ -414,7 +449,7 @@ export default function Game() {
     }
 
     const player = game.players[game.currentPlayer];
-    const currentItem = player.rosco[game.currentLetterIndex];
+    const currentItem = player.rosco[player.currentIndex];
     
     if (!currentItem || currentItem.status !== "pending") {
       setMessage({ text: "⚠️ Esta letra ya fue respondida", type: "error" });
@@ -440,7 +475,13 @@ export default function Game() {
     if (letterIndex !== -1 && player.rosco[letterIndex].status === "pending") {
       setGame(prev => ({
         ...prev,
-        currentLetterIndex: letterIndex
+        players: {
+          ...prev.players,
+          [prev.currentPlayer]: {
+            ...player,
+            currentIndex: letterIndex
+          }
+        }
       }));
       setTime(QUESTION_TIME);
       setInput("");
@@ -457,24 +498,24 @@ export default function Game() {
     
     setGameFinished(true);
     
-    const p1Score = game.players[1].score;
     const p1Correct = game.players[1].rosco.filter(r => r.status === "correct").length;
     const p1Wrong = game.players[1].rosco.filter(r => r.status === "wrong").length;
+    const p1Score = p1Correct;
     
-    let p2Score = 0;
-    let p2Correct = 0;
-    let p2Wrong = 0;
+    let p2Correct = 0, p2Wrong = 0, p2Score = 0;
+    let twoPlayer = false;
     
     if (game.players[2]) {
-      p2Score = game.players[2].score;
+      twoPlayer = true;
       p2Correct = game.players[2].rosco.filter(r => r.status === "correct").length;
       p2Wrong = game.players[2].rosco.filter(r => r.status === "wrong").length;
+      p2Score = p2Correct;
     }
     
     const winner = p1Score > p2Score ? 1 : (p2Score > p1Score ? 2 : 0);
     
     setMessage({ 
-      text: "🎮 JUEGO TERMINADO 🎮", 
+      text: winner === 1 ? "🎮 JUGADOR 1 GANA 🎮" : winner === 2 ? "🎮 JUGADOR 2 GANA 🎮" : "🎮 EMPATE 🎮", 
       type: "gameover" 
     });
   };
@@ -578,9 +619,9 @@ export default function Game() {
             <ul style={styles.rulesList}>
               <li>📌 Cada jugador tiene su propio rosco</li>
               <li>🎯 Empieza el Jugador 1 desde la letra A</li>
-              <li>✅ Si acierta: suma punto y pasa a la siguiente letra</li>
-              <li>❌ Si falla: NO suma punto, pasa a la siguiente letra</li>
-              <li>🔄 Siempre continúa el mismo jugador hasta completar el rosco</li>
+              <li>✅ Si acierta: suma punto y continúa el mismo jugador</li>
+              <li>❌ Si falla: NO suma punto y PASA EL TURNO</li>
+              <li>🔄 El siguiente jugador continúa desde donde quedó</li>
               <li>🏆 Gana quien tenga más aciertos al final del rosco</li>
               <li>🇻🇪 Cada rosco incluye 2-3 palabras venezolanas</li>
               <li>⏱️ 30 segundos por pregunta - El tiempo se reinicia en cada letra</li>
@@ -601,21 +642,19 @@ export default function Game() {
     );
   }
 
-  // Game Finished Screen - Summary Table
+  // Game Finished Screen
   if (gameFinished && game) {
     const p1Correct = game.players[1].rosco.filter(r => r.status === "correct").length;
     const p1Wrong = game.players[1].rosco.filter(r => r.status === "wrong").length;
-    const p1Total = p1Correct + p1Wrong;
     const p1Score = p1Correct;
     
-    let p2Correct = 0, p2Wrong = 0, p2Total = 0, p2Score = 0;
+    let p2Correct = 0, p2Wrong = 0, p2Score = 0;
     let twoPlayer = false;
     
     if (game.players[2]) {
       twoPlayer = true;
       p2Correct = game.players[2].rosco.filter(r => r.status === "correct").length;
       p2Wrong = game.players[2].rosco.filter(r => r.status === "wrong").length;
-      p2Total = p2Correct + p2Wrong;
       p2Score = p2Correct;
     }
     
@@ -650,7 +689,7 @@ export default function Game() {
                   <td style={styles.td}><strong>Jugador 1</strong></td>
                   <td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p1Correct}</td>
                   <td style={{...styles.td, color: "#f44336"}}>{p1Wrong}</td>
-                  <td style={styles.td}>{p1Total}/27</td>
+                  <td style={styles.td}>{p1Correct + p1Wrong}/27</td>
                   <td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#2196F3"}}>{p1Score}</td>
                 </tr>
                 {twoPlayer && (
@@ -658,7 +697,7 @@ export default function Game() {
                     <td style={styles.td}><strong>Jugador 2</strong></td>
                     <td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p2Correct}</td>
                     <td style={{...styles.td, color: "#f44336"}}>{p2Wrong}</td>
-                    <td style={styles.td}>{p2Total}/27</td>
+                    <td style={styles.td}>{p2Correct + p2Wrong}/27</td>
                     <td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#FF9800"}}>{p2Score}</td>
                   </tr>
                 )}
@@ -668,10 +707,8 @@ export default function Game() {
           
           <div style={styles.summaryDetails}>
             <h3>📋 Resumen del Juego:</h3>
-            <p>🎯 El Jugador 1 completó el rosco con {p1Correct} aciertos y {p1Wrong} fallos</p>
-            {twoPlayer && (
-              <p>🎯 El Jugador 2 completó el rosco con {p2Correct} aciertos y {p2Wrong} fallos</p>
-            )}
+            <p>🎯 Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos</p>
+            {twoPlayer && <p>🎯 Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos</p>}
             <p>🇻🇪 Cada rosco incluyó 2-3 palabras del argot venezolano</p>
             <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
           </div>
@@ -698,7 +735,7 @@ export default function Game() {
   }
 
   const player = game.players[game.currentPlayer];
-  const currentItem = player.rosco[game.currentLetterIndex];
+  const currentItem = player.rosco[player.currentIndex];
   const answeredCount = player.rosco.filter(r => r.status !== "pending").length;
   const remainingCount = 27 - answeredCount;
 
@@ -710,12 +747,15 @@ export default function Game() {
       </Head>
       <div style={styles.gameContainer}>
         <div style={styles.header}>
-          <div style={styles.playerCard}>
-            <div style={{ fontWeight: "bold" }}>Jugador 1</div>
+          <div style={{
+            ...styles.playerCard,
+            backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5",
+            border: game.currentPlayer === 1 ? "2px solid #2196F3" : "none"
+          }}>
+            <div style={{ fontWeight: "bold" }}>👤 Jugador 1</div>
             <div style={styles.playerScore}>{game.players[1].score}</div>
             <div style={styles.playerProgress}>
-              {game.players[1].rosco.filter(r => r.status === "correct").length}✓ / 
-              {game.players[1].rosco.filter(r => r.status === "wrong").length}✗
+              ✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length}
             </div>
           </div>
           
@@ -723,16 +763,19 @@ export default function Game() {
             <div style={{ ...styles.timer, color: time <= 10 ? "#f44336" : "#333" }}>
               ⏱️ {time}s
             </div>
-            <div style={styles.turnLabel}>Turno {game.currentPlayer}</div>
+            <div style={styles.turnLabel}>🎯 Turno Jugador {game.currentPlayer}</div>
           </div>
           
           {game.players[2] && (
-            <div style={styles.playerCard}>
-              <div style={{ fontWeight: "bold" }}>Jugador 2</div>
+            <div style={{
+              ...styles.playerCard,
+              backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5",
+              border: game.currentPlayer === 2 ? "2px solid #FF9800" : "none"
+            }}>
+              <div style={{ fontWeight: "bold" }}>👤 Jugador 2</div>
               <div style={{ ...styles.playerScore, color: "#FF9800" }}>{game.players[2].score}</div>
               <div style={styles.playerProgress}>
-                {game.players[2].rosco.filter(r => r.status === "correct").length}✓ / 
-                {game.players[2].rosco.filter(r => r.status === "wrong").length}✗
+                ✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length}
               </div>
             </div>
           )}
@@ -886,12 +929,12 @@ const styles = {
     flexWrap: "wrap"
   },
   playerCard: {
-    backgroundColor: "#f5f5f5",
     padding: "8px 12px",
     borderRadius: "10px",
     textAlign: "center",
     flex: 1,
-    minWidth: "70px"
+    minWidth: "80px",
+    transition: "all 0.3s"
   },
   playerScore: {
     fontSize: "clamp(20px, 6vw, 28px)",
@@ -899,7 +942,7 @@ const styles = {
     color: "#2196F3"
   },
   playerProgress: {
-    fontSize: "9px",
+    fontSize: "10px",
     color: "#666"
   },
   timerContainer: {
@@ -911,8 +954,9 @@ const styles = {
     fontWeight: "bold"
   },
   turnLabel: {
-    fontSize: "11px",
-    color: "#666"
+    fontSize: "12px",
+    fontWeight: "bold",
+    color: "#2196F3"
   },
   roscoWrapper: {
     display: "flex",
@@ -1021,7 +1065,6 @@ const styles = {
     marginRight: "4px",
     border: "2px solid #FF9800"
   },
-  // Summary Screen Styles
   summaryContainer: {
     fontFamily: "system-ui, -apple-system, sans-serif",
     padding: "20px",
