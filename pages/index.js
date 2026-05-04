@@ -801,6 +801,7 @@ export default function Game() {
   }
 
   // Game Finished Screen
+  // Game Finished Screen
   if (gameFinished && game) {
     const p1Correct = game.players[1].rosco.filter(r => r.status === "correct").length;
     const p1Wrong = game.players[1].rosco.filter(r => r.status === "wrong").length;
@@ -837,10 +838,32 @@ export default function Game() {
           
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td></tr>
-                {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td><td>)}
+                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}>
+                  <td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 1</strong></td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1Wrong}</td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1Passed}</td>
+                  <td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td>
+                </tr>
+                {twoPlayer && (
+                  <tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}>
+                    <td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td>
+                    <td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -863,108 +886,3 @@ export default function Game() {
       </>
     );
   }
-
-  const player = game.players[game.currentPlayer];
-  const currentItem = player.rosco[player.currentIndex];
-  const answeredCount = player.rosco.filter(r => r.status !== "pending").length;
-  const remainingCount = 27 - answeredCount;
-  const passedCount = player.rosco.filter(r => r.passed).length;
-
-  return (
-    <>
-      <Head>
-        <title>Pasapalabra - Jugador {game.currentPlayer}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta httpEquiv="Pragma" content="no-cache" />
-        <meta httpEquiv="Expires" content="0" />
-      </Head>
-      <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto" }}>
-        
-        {/* Version Banner - Shows on game screen too */}
-        {showVersion && (
-          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "6px", borderRadius: "6px", marginBottom: "10px", textAlign: "center", fontSize: "11px" }}>
-            ✅ Versión {VERSION} - Cargada: {new Date().toLocaleTimeString()}
-          </div>
-        )}
-        
-        {/* Header */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px" }}>
-          <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
-            <div style={{ fontWeight: "bold", fontSize: "14px" }}>Jugador 1</div>
-            <div style={{ fontSize: "28px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
-            <div style={{ fontSize: "10px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed).length}</div>
-          </div>
-          
-          <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: "36px", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>{time}s</div>
-            <div style={{ fontSize: "12px", fontWeight: "bold" }}>Ronda {game.round}</div>
-            <div style={{ fontSize: "11px", color: "#666" }}>Turno Jugador {game.currentPlayer}</div>
-          </div>
-          
-          {game.players[2] && (
-            <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
-              <div style={{ fontWeight: "bold", fontSize: "14px" }}>Jugador 2</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={{ fontSize: "10px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed).length}</div>
-            </div>
-          )}
-        </div>
-
-        {/* Circular Rosco */}
-        <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} />
-
-        {/* Question Card */}
-        <div style={{ borderRadius: "15px", padding: "20px", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
-          {currentItem.isSlang && <div style={{ fontSize: "13px", color: "#FF9800", fontWeight: "bold", marginBottom: "5px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
-          <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Letra {currentItem.letter} | Restantes: {remainingCount} | Pasadas: {passedCount}</div>
-          <div style={{ fontSize: "18px", fontWeight: "bold", lineHeight: 1.4 }}>{currentItem.question}</div>
-        </div>
-
-        {/* Input and Buttons */}
-        {!showAnswer && (
-          <div style={{ marginBottom: "15px" }}>
-            <input
-              style={{ width: "100%", padding: "15px", fontSize: "16px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "10px" }}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribe tu respuesta..."
-              autoFocus
-            />
-            <div style={{ display: "flex", gap: "10px", flexDirection: "row" }}>
-              <button onClick={answer} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>
-                📝 Responder
-              </button>
-              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>
-                ⏭️ PASAPALABRA
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Message */}
-        {message.text && (
-          <div style={{ marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontWeight: "bold", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
-            {message.text}
-          </div>
-        )}
-
-        {/* Legend */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "15px", fontSize: "11px", borderTop: "1px solid #ddd", paddingTop: "12px", flexWrap: "wrap" }}>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px" }}></span> Sin responder</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "5px" }}></span> Correcto</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "5px" }}></span> Incorrecto</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "5px" }}></span> Pasapalabra</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px", border: "2px solid #FF9800" }}></span> Letra actual</div>
-        </div>
-        
-        {/* Clear Cache Link at bottom */}
-        <div style={{ textAlign: "center", marginTop: "15px" }}>
-          <button onClick={clearCacheAndReload} style={{ padding: "6px 12px", fontSize: "10px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>
-            🗑️ Force Reload (clear cache)
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
