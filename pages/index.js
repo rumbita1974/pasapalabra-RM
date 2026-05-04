@@ -107,7 +107,6 @@ function buildRosco(difficulty, seedOffset = 0) {
 }
 
 function getNextPendingIndex(rosco, currentIndex) {
-  // Look for next pending letter (not correct, not wrong)
   for (let i = currentIndex + 1; i < rosco.length; i++) {
     if (rosco[i].status === "pending") return i;
   }
@@ -139,11 +138,11 @@ function resetPassedLetters(rosco) {
 ========================= */
 
 function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
-  const size = isMobile ? 320 : 440;
+  const size = isMobile ? Math.min(320, window.innerWidth - 40) : 440;
   const center = size / 2;
-  const radius = isMobile ? 140 : 190;
-  const buttonRadius = isMobile ? 22 : 28;
-  const fontSize = isMobile ? 14 : 18;
+  const radius = isMobile ? 130 : 190;
+  const buttonRadius = isMobile ? 20 : 28;
+  const fontSize = isMobile ? 12 : 18;
   
   const getAngle = (index) => {
     return (index * 360 / letters.length) - 90;
@@ -164,7 +163,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
   };
   
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", margin: "10px 0" }}>
       <svg width={size} height={size} style={{ display: "block", maxWidth: "100%", height: "auto" }}>
         <circle cx={center} cy={center} r={radius} fill="#f5f5f5" stroke="#ccc" strokeWidth="2"/>
         {letters.map((item, index) => {
@@ -248,7 +247,6 @@ export default function Game() {
     if (welcomeSound.current) welcomeSound.current.volume = 1.0;
   }, []);
 
-  // Timer effect
   useEffect(() => {
     if (setup || !game || gameFinished || showAnswer) return;
 
@@ -314,7 +312,6 @@ export default function Game() {
     
     if (!currentItem || currentItem.status !== "pending") return;
     
-    // Mark as wrong
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
@@ -323,11 +320,10 @@ export default function Game() {
     
     setShowAnswer(true);
     setMessage({ 
-      text: `⏰ Tiempo agotado! Respuesta: ${currentItem.answer.toUpperCase()}`, 
+      text: `⏰ Tiempo! Respuesta: ${currentItem.answer.toUpperCase()}`, 
       type: "error" 
     });
     
-    // Find next letter
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     setGame(prev => ({
@@ -344,7 +340,6 @@ export default function Game() {
     
     wrongSound.current?.play();
     
-    // Switch player in 2-player mode
     if (playersCount === 2 && !gameFinished) {
       const nextPlayer = currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
@@ -383,7 +378,6 @@ export default function Game() {
     
     if (!currentItem || currentItem.status !== "pending") return;
     
-    // Mark as correct
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
@@ -391,13 +385,10 @@ export default function Game() {
       passed: false
     };
     
-    // Find next letter
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
-      // Check for second round
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
-        // Start second round
         const resetRosco = resetPassedLetters(updatedRosco);
         const firstPending = getFirstPendingIndex(resetRosco);
         
@@ -415,10 +406,9 @@ export default function Game() {
           }
         }));
         
-        setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas se intentan de nuevo", type: "info" });
+        setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas", type: "info" });
         setTimeout(() => setMessage({ text: "", type: "" }), 2000);
       } else {
-        // Game completed for this player
         setGame(prev => ({
           ...prev,
           players: {
@@ -432,17 +422,15 @@ export default function Game() {
           }
         }));
         
-        setMessage({ text: `🎉 ¡Jugador ${currentPlayer} completó el ROSCO! 🎉`, type: "success" });
+        setMessage({ text: `🎉 ¡Jugador ${currentPlayer} completó! 🎉`, type: "success" });
         
-        // Check if game should end
         const otherPlayer = currentPlayer === 1 ? 2 : 1;
         if (playersCount === 1 || game.players[otherPlayer]?.completed) {
           setTimeout(() => endGame(), 2000);
         } else {
-          // Switch to other player
           setTimeout(() => {
             const nextPlayerData = game.players[otherPlayer];
-            const nextIndex = getFirstPendingIndex(nextPlayerData.rosco);
+            const nextIdx = getFirstPendingIndex(nextPlayerData.rosco);
             setGame(prev => ({
               ...prev,
               currentPlayer: otherPlayer,
@@ -450,7 +438,7 @@ export default function Game() {
                 ...prev.players,
                 [otherPlayer]: {
                   ...nextPlayerData,
-                  currentIndex: nextIndex !== -1 ? nextIndex : 0
+                  currentIndex: nextIdx !== -1 ? nextIdx : 0
                 }
               }
             }));
@@ -458,7 +446,6 @@ export default function Game() {
         }
       }
     } else {
-      // Move to next letter, same player continues
       setGame(prev => ({
         ...prev,
         players: {
@@ -490,7 +477,6 @@ export default function Game() {
     
     if (!currentItem || currentItem.status !== "pending") return;
     
-    // Mark as wrong
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
@@ -499,15 +485,13 @@ export default function Game() {
     
     setShowAnswer(true);
     setMessage({ 
-      text: `❌ Incorrecto. Respuesta: ${currentItem.answer.toUpperCase()}`, 
+      text: `❌ Respuesta: ${currentItem.answer.toUpperCase()}`, 
       type: "error" 
     });
     
-    // Find next letter
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
-      // Check for second round
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
         const resetRosco = resetPassedLetters(updatedRosco);
         const firstPending = getFirstPendingIndex(resetRosco);
@@ -525,7 +509,7 @@ export default function Game() {
           }
         }));
         
-        setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas se intentan de nuevo", type: "info" });
+        setMessage({ text: "🔄 ¡Segunda ronda!", type: "info" });
         setTimeout(() => setMessage({ text: "", type: "" }), 2000);
       } else {
         setGame(prev => ({
@@ -562,7 +546,6 @@ export default function Game() {
         }
       }
     } else {
-      // Update player's progress
       setGame(prev => ({
         ...prev,
         players: {
@@ -575,7 +558,6 @@ export default function Game() {
         }
       }));
       
-      // Switch player in 2-player mode
       if (playersCount === 2) {
         const nextPlayer = currentPlayer === 1 ? 2 : 1;
         const nextPlayerData = game.players[nextPlayer];
@@ -616,19 +598,17 @@ export default function Game() {
     const currentItem = player.rosco[player.currentIndex];
     
     if (!currentItem || currentItem.status !== "pending") {
-      setMessage({ text: "⚠️ Esta letra ya fue respondida", type: "error" });
+      setMessage({ text: "⚠️ Ya fue respondida", type: "error" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
       return;
     }
     
-    // Mark as passed (yellow)
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
       passed: true
     };
     
-    // Find next pending letter (not passed)
     let nextIndex = -1;
     for (let i = player.currentIndex + 1; i < updatedRosco.length; i++) {
       if (updatedRosco[i].status === "pending" && !updatedRosco[i].passed) {
@@ -645,7 +625,6 @@ export default function Game() {
       }
     }
     
-    // Update player's progress
     setGame(prev => ({
       ...prev,
       players: {
@@ -658,7 +637,6 @@ export default function Game() {
       }
     }));
     
-    // Switch player (only in 2-player mode, otherwise stay on same player)
     if (playersCount === 2) {
       const nextPlayer = currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
@@ -679,7 +657,7 @@ export default function Game() {
       }
     }
     
-    setMessage({ text: `⏭️ ¡Pasapalabra! ${playersCount === 2 ? `Turno Jugador ${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
+    setMessage({ text: `⏭️ PASAPALABRA! ${playersCount === 2 ? `Turno Jugador ${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
     setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     
     setTime(QUESTION_TIME);
@@ -689,7 +667,7 @@ export default function Game() {
   const answer = () => {
     if (!game || gameFinished || showAnswer) return;
     if (!input.trim()) {
-      setMessage({ text: "✏️ Escribe una respuesta", type: "error" });
+      setMessage({ text: "✏️ Escribe respuesta", type: "error" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
       return;
     }
@@ -698,7 +676,7 @@ export default function Game() {
     const currentItem = player.rosco[player.currentIndex];
     
     if (!currentItem || currentItem.status !== "pending") {
-      setMessage({ text: "⚠️ Esta letra ya fue respondida", type: "error" });
+      setMessage({ text: "⚠️ Ya fue respondida", type: "error" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
       return;
     }
@@ -731,10 +709,10 @@ export default function Game() {
       }));
       setTime(QUESTION_TIME);
       setInput("");
-      setMessage({ text: `Saltaste a la letra ${letter}`, type: "info" });
+      setMessage({ text: `Letra ${letter}`, type: "info" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1000);
     } else if (letterIndex !== -1 && player.rosco[letterIndex].passed) {
-      setMessage({ text: `La letra ${letter} fue pasada - se intentará en segunda ronda`, type: "info" });
+      setMessage({ text: `Letra ${letter} pasada - 2da ronda`, type: "info" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     }
   };
@@ -762,7 +740,7 @@ export default function Game() {
     
     setGameFinished(true);
     setMessage({ 
-      text: winner === 1 ? "🎮 JUGADOR 1 GANA 🎮" : winner === 2 ? "🎮 JUGADOR 2 GANA 🎮" : "🎮 EMPATE 🎮", 
+      text: winner === 1 ? "🏆 JUGADOR 1 GANA 🏆" : winner === 2 ? "🏆 JUGADOR 2 GANA 🏆" : "🤝 EMPATE 🤝", 
       type: "gameover" 
     });
   };
@@ -784,48 +762,47 @@ export default function Game() {
         <Head>
           <title>Pasapalabra Venezuela</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+          <meta name="description" content="Juego de Pasapalabra con palabras venezolanas" />
         </Head>
-        <div style={styles.setupContainer}>
-          <h1 style={styles.title}>🎙️ Pasapalabra<br/>Venezuela 🎙️</h1>
-          <p style={styles.subtitle}>¡Incluye palabras del argot venezolano!</p>
+        <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)", marginBottom: "10px" }}>🎙️ Pasapalabra<br/>Venezuela 🎙️</h1>
+          <p style={{ marginBottom: "30px", fontSize: "clamp(14px, 4vw, 18px)", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
 
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>👥 Jugadores</h3>
-            <div style={styles.buttonGroup}>
-              <button onClick={() => setPlayersCount(1)} style={{...styles.choiceButton, backgroundColor: playersCount === 1 ? "#2196F3" : "#fff", color: playersCount === 1 ? "#fff" : "#333", borderColor: playersCount === 1 ? "#2196F3" : "#ccc"}}>1 jugador</button>
-              <button onClick={() => setPlayersCount(2)} style={{...styles.choiceButton, backgroundColor: playersCount === 2 ? "#2196F3" : "#fff", color: playersCount === 2 ? "#fff" : "#333", borderColor: playersCount === 2 ? "#2196F3" : "#ccc"}}>2 jugadores</button>
+          <div style={{ marginBottom: "30px" }}>
+            <h3>👥 Jugadores</h3>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button onClick={() => setPlayersCount(1)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: playersCount === 1 ? "#2196F3" : "#fff", color: playersCount === 1 ? "#fff" : "#333", borderColor: playersCount === 1 ? "#2196F3" : "#ccc" }}>1 jugador</button>
+              <button onClick={() => setPlayersCount(2)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: playersCount === 2 ? "#2196F3" : "#fff", color: playersCount === 2 ? "#fff" : "#333", borderColor: playersCount === 2 ? "#2196F3" : "#ccc" }}>2 jugadores</button>
             </div>
           </div>
 
-          <div style={styles.section}>
-            <h3 style={styles.sectionTitle}>📚 Dificultad</h3>
-            <div style={styles.buttonGroup}>
-              <button onClick={() => setDifficulty("easy")} style={{...styles.choiceButton, backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff", color: difficulty === "easy" ? "#fff" : "#333", borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc"}}>Fácil</button>
-              <button onClick={() => setDifficulty("medium")} style={{...styles.choiceButton, backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff", color: difficulty === "medium" ? "#fff" : "#333", borderColor: difficulty === "medium" ? "#FF9800" : "#ccc"}}>Medio</button>
-              <button onClick={() => setDifficulty("hard")} style={{...styles.choiceButton, backgroundColor: difficulty === "hard" ? "#f44336" : "#fff", color: difficulty === "hard" ? "#fff" : "#333", borderColor: difficulty === "hard" ? "#f44336" : "#ccc"}}>Difícil</button>
+          <div style={{ marginBottom: "30px" }}>
+            <h3>📚 Dificultad</h3>
+            <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
+              <button onClick={() => setDifficulty("easy")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff", color: difficulty === "easy" ? "#fff" : "#333", borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc" }}>Fácil</button>
+              <button onClick={() => setDifficulty("medium")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff", color: difficulty === "medium" ? "#fff" : "#333", borderColor: difficulty === "medium" ? "#FF9800" : "#ccc" }}>Medio</button>
+              <button onClick={() => setDifficulty("hard")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", fontWeight: "bold", backgroundColor: difficulty === "hard" ? "#f44336" : "#fff", color: difficulty === "hard" ? "#fff" : "#333", borderColor: difficulty === "hard" ? "#f44336" : "#ccc" }}>Difícil</button>
             </div>
           </div>
 
-          <button onClick={startGame} style={styles.startButton}>🎮 Empezar Partida</button>
+          <button onClick={startGame} style={{ padding: "15px 30px", fontSize: "clamp(16px, 5vw, 20px)", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "30px" }}>🎮 Empezar Partida</button>
           
-          <div style={styles.rulesContainer}>
-            <h3 style={styles.rulesTitle}>📖 Reglas:</h3>
-            <ul style={styles.rulesList}>
+          <div style={{ textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "20px" }}>
+            <h3 style={{ marginTop: 0 }}>📖 Reglas:</h3>
+            <ul style={{ margin: 0, paddingLeft: "20px", lineHeight: 1.8 }}>
               <li>📌 Cada jugador tiene su propio rosco</li>
               <li>🎯 Empieza el Jugador 1 desde la letra A</li>
-              <li>✅ Si acierta: suma punto y continúa el mismo jugador</li>
-              <li>❌ Si falla o tiempo agotado: NO suma punto</li>
-              <li>🎮 1 jugador: continúa con la siguiente letra</li>
-              <li>👥 2 jugadores: fallo = pasa el turno al otro jugador</li>
-              <li>⏭️ PASAPALABRA: pasa la letra a segunda ronda</li>
-              <li>🔄 Segunda ronda: se intentan las letras pasadas</li>
+              <li>✅ Acierto: suma punto y continúa</li>
+              <li>❌ Fallo/tiempo: NO suma punto, pasa turno (2P)</li>
+              <li>⏭️ PASAPALABRA: pasa letra a 2da ronda</li>
+              <li>🔄 2da ronda: letras pasadas se intentan</li>
               <li>🏆 Gana quien tenga más aciertos</li>
-              <li>🇻🇪 Cada rosco incluye 2-3 palabras venezolanas</li>
+              <li>🇻🇪 2-3 palabras venezolanas por rosco</li>
               <li>⏱️ 30 segundos por pregunta</li>
             </ul>
           </div>
 
-          <div style={styles.copyright}>
+          <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px", borderTop: "2px solid #ddd" }}>
             <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px" }}>Designed by Armando Guillen - Copyright 2026</p>
             <p style={{ fontSize: "12px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game) - All rights remain with their corresponding owners.</p>
           </div>
@@ -856,34 +833,37 @@ export default function Game() {
     
     return (
       <>
-        <Head><title>Pasapalabra - Resultados Finales</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
-        <div style={styles.summaryContainer}>
-          <h1 style={styles.summaryTitle}>🏆 RESULTADOS FINALES 🏆</h1>
-          {winner === 1 && <h2 style={styles.winnerText}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
-          {winner === 2 && <h2 style={styles.winnerText}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
-          {winner === 0 && <h2 style={styles.winnerText}>🤝 ¡EMPATE! 🤝</h2>}
+        <Head><title>Pasapalabra - Resultados</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
+        <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <h1 style={{ fontSize: "clamp(24px, 6vw, 36px)", textAlign: "center" }}>🏆 RESULTADOS 🏆</h1>
+          {winner === 1 && <h2 style={{ fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center" }}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
+          {winner === 2 && <h2 style={{ fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center" }}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
+          {winner === 0 && <h2 style={{ fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center" }}>🤝 ¡EMPATE! 🤝</h2>}
           
-          <div style={styles.summaryTable}>
-            <table style={styles.table}>
-              <thead><tr><th style={styles.th}>Jugador</th><th style={styles.th}>✅ Correctas</th><th style={styles.th}>❌ Incorrectas</th><th style={styles.th}>⏭️ Pasadas</th><th style={styles.th}>⭐ Puntuación</th></tr></thead>
+          <div style={{ overflowX: "auto", marginBottom: "30px" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white", border: "1px solid #ddd" }}>⭐ Puntos</th></tr></thead>
               <tbody>
-                <tr style={winner === 1 ? styles.winnerRow : {}}><td style={styles.td}><strong>Jugador 1</strong></td><td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p1Correct}</td><td style={{...styles.td, color: "#f44336"}}>{p1Wrong}</td><td style={{...styles.td, color: "#FFC107"}}>{p1Passed}</td><td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#2196F3"}}>{p1Score}</td></tr>
-                {twoPlayer && (<tr style={winner === 2 ? styles.winnerRow : {}}><td style={styles.td}><strong>Jugador 2</strong></td><td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p2Correct}</td><td style={{...styles.td, color: "#f44336"}}>{p2Wrong}</td><td style={{...styles.td, color: "#FFC107"}}>{p2Passed}</td><td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#FF9800"}}>{p2Score}</td></tr>)}
+                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#f44336" }}>{p1Wrong}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#FFC107" }}>{p1Passed}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td></tr>
+                {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", border: "1px solid #ddd", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td></tr>)}
               </tbody>
             </table>
           </div>
           
-          <div style={styles.summaryDetails}>
-            <h3>📋 Resumen del Juego:</h3>
+          <div style={{ backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", marginBottom: "30px" }}>
+            <h3>📋 Resumen:</h3>
             <p>🎯 Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos, {p1Passed} pasadas</p>
             {twoPlayer && <p>🎯 Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
-            <p>🇻🇪 Cada rosco incluyó 2-3 palabras del argot venezolano</p>
-            <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
+            <p>🇻🇪 2-3 palabras venezolanas por rosco</p>
+            <p>⏱️ 30 segundos por pregunta</p>
           </div>
           
-          <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={styles.playAgainButton}>🔄 Jugar de Nuevo</button>
+          <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ padding: "15px 30px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "20px" }}>🔄 Jugar de Nuevo</button>
           
-          <div style={styles.copyright}><p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "4px" }}>Designed by Armando Guillen - Copyright 2026</p><p style={{ fontSize: "10px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p></div>
+          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", borderTop: "1px solid #eee", backgroundColor: "#fafafa", borderRadius: "8px" }}>
+            <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "4px" }}>Designed by Armando Guillen - Copyright 2026</p>
+            <p style={{ fontSize: "10px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+          </div>
         </div>
       </>
     );
@@ -897,109 +877,76 @@ export default function Game() {
 
   return (
     <>
-      <Head><title>Pasapalabra - Jugador {game.currentPlayer}</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
-      <div style={styles.gameContainer}>
-        <div style={styles.header}>
-          <div style={{...styles.playerCard, backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd"}}>
-            <div style={{ fontWeight: "bold" }}>👤 Jugador 1</div>
-            <div style={styles.playerScore}>{game.players[1].score}</div>
-            <div style={styles.playerProgress}>✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[1].rosco.filter(r => r.passed).length}</div>
+      <Head>
+        <title>Pasapalabra - J{game.currentPlayer}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+      </Head>
+      <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px", flexWrap: "wrap" }}>
+          <div style={{ padding: "8px 12px", borderRadius: "10px", textAlign: "center", flex: 1, minWidth: "70px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
+            <div style={{ fontWeight: "bold", fontSize: "12px" }}>👤 J1</div>
+            <div style={{ fontSize: "clamp(20px, 6vw, 28px)", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
+            <div style={{ fontSize: "9px", color: "#666" }}>✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[1].rosco.filter(r => r.passed).length}</div>
           </div>
           
-          <div style={styles.timerContainer}>
-            <div style={{ ...styles.timer, color: time <= 10 ? "#f44336" : "#333" }}>⏱️ {time}s</div>
-            <div style={styles.turnLabel}>🎯 Ronda {game.round} - Turno J{game.currentPlayer}</div>
+          <div style={{ textAlign: "center", flex: 1 }}>
+            <div style={{ fontSize: "clamp(28px, 7vw, 42px)", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>⏱️ {time}s</div>
+            <div style={{ fontSize: "10px", fontWeight: "bold", color: "#2196F3" }}>🎯 R{game.round} J{game.currentPlayer}</div>
           </div>
           
           {game.players[2] && (
-            <div style={{...styles.playerCard, backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd"}}>
-              <div style={{ fontWeight: "bold" }}>👤 Jugador 2</div>
-              <div style={{ ...styles.playerScore, color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={styles.playerProgress}>✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[2].rosco.filter(r => r.passed).length}</div>
+            <div style={{ padding: "8px 12px", borderRadius: "10px", textAlign: "center", flex: 1, minWidth: "70px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
+              <div style={{ fontWeight: "bold", fontSize: "12px" }}>👤 J2</div>
+              <div style={{ fontSize: "clamp(20px, 6vw, 28px)", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
+              <div style={{ fontSize: "9px", color: "#666" }}>✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[2].rosco.filter(r => r.passed).length}</div>
             </div>
           )}
         </div>
 
-        <div style={styles.roscoWrapper}>
-          <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} isMobile={isMobile} />
+        {/* Rosco */}
+        <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} isMobile={isMobile} />
+
+        {/* Question */}
+        <div style={{ borderRadius: "15px", padding: "clamp(12px, 4vw, 20px)", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
+          {currentItem.isSlang && <div style={{ fontSize: "12px", color: "#FF9800", marginBottom: "5px", fontWeight: "bold" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
+          <div style={{ fontSize: "11px", color: "#666", marginBottom: "5px" }}>Letra {currentItem.letter} ({remainingCount} rest, {passedCount} pasadas)</div>
+          <div style={{ fontSize: "clamp(16px, 5vw, 20px)", fontWeight: "bold", lineHeight: 1.4 }}>{currentItem.question}</div>
         </div>
 
-        <div style={{...styles.questionCard, backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd"}}>
-          {currentItem.isSlang && <div style={styles.slangBadge}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
-          <div style={styles.letterBadge}>Letra {currentItem.letter} ({remainingCount} restantes, {passedCount} pasadas)</div>
-          <div style={styles.questionText}>{currentItem.question}</div>
-        </div>
-
+        {/* Input and Buttons */}
         {!showAnswer && (
-          <div style={styles.inputContainer}>
-            <input style={styles.input} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Escribe tu respuesta..." autoFocus />
-            <div style={styles.buttonGroupRow}>
-              <button onClick={answer} style={styles.answerButton}>📝 Responder</button>
-              <button onClick={handlePasapalabra} style={styles.pasapalabraButton}>⏭️ PASAPALABRA</button>
+          <div style={{ marginBottom: "15px" }}>
+            <input
+              style={{ fontSize: "clamp(14px, 4vw, 16px)", padding: "12px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", width: "100%", boxSizing: "border-box", marginBottom: "10px" }}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Escribe tu respuesta..."
+              autoFocus
+            />
+            <div style={{ display: "flex", gap: "10px", flexDirection: isMobile ? "column" : "row" }}>
+              <button onClick={answer} style={{ flex: 1, padding: "12px", fontSize: "clamp(14px, 4vw, 16px)", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>📝 Responder</button>
+              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "12px", fontSize: "clamp(14px, 4vw, 16px)", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>⏭️ PASAPALABRA</button>
             </div>
           </div>
         )}
 
-        {message.text && <div style={{...styles.message, backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB"}}>{message.text}</div>}
+        {/* Message */}
+        {message.text && (
+          <div style={{ marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontSize: "clamp(13px, 4vw, 15px)", fontWeight: "bold", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
+            {message.text}
+          </div>
+        )}
 
-        <div style={styles.legend}>
-          <div><span style={styles.legendDotGrey}></span> Sin responder</div>
-          <div><span style={styles.legendDotGreen}></span> Correcto ✓</div>
-          <div><span style={styles.legendDotRed}></span> Incorrecto ✗</div>
-          <div><span style={styles.legendDotYellow}></span> Pasapalabra ⏭️</div>
-          <div><span style={styles.legendDotOrange}></span> Actual</div>
+        {/* Legend */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "clamp(8px, 3vw, 15px)", fontSize: "clamp(9px, 3vw, 11px)", flexWrap: "wrap", borderTop: "1px solid #ddd", paddingTop: "12px", marginTop: "5px" }}>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px" }}></span> Pendiente</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "4px" }}></span> Correcto</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "4px" }}></span> Incorrecto</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "4px" }}></span> Pasapalabra</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
       </div>
     </>
   );
 }
-
-const styles = {
-  setupContainer: { textAlign: "center", padding: "20px", fontFamily: "system-ui, -apple-system, sans-serif", maxWidth: "600px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" },
-  title: { fontSize: "clamp(32px, 8vw, 48px)", marginBottom: "10px" },
-  subtitle: { marginBottom: "30px", fontSize: "clamp(14px, 4vw, 18px)", color: "#666" },
-  section: { marginBottom: "30px" },
-  sectionTitle: { marginBottom: "10px" },
-  buttonGroup: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" },
-  choiceButton: { padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", transition: "all 0.3s", fontWeight: "bold" },
-  startButton: { padding: "15px 30px", fontSize: "clamp(16px, 5vw, 20px)", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "30px" },
-  rulesContainer: { textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "20px" },
-  rulesTitle: { marginTop: 0, marginBottom: "10px" },
-  rulesList: { margin: 0, paddingLeft: "20px", lineHeight: 1.8 },
-  copyright: { marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px", borderTop: "2px solid #ddd", marginBottom: "20px" },
-  gameContainer: { fontFamily: "system-ui, -apple-system, sans-serif", padding: "clamp(10px, 3vw, 20px)", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "20px", flexWrap: "wrap" },
-  playerCard: { padding: "8px 12px", borderRadius: "10px", textAlign: "center", flex: 1, minWidth: "80px", transition: "all 0.3s" },
-  playerScore: { fontSize: "clamp(20px, 6vw, 28px)", fontWeight: "bold", color: "#2196F3" },
-  playerProgress: { fontSize: "9px", color: "#666" },
-  timerContainer: { textAlign: "center", flex: 1 },
-  timer: { fontSize: "clamp(28px, 7vw, 42px)", fontWeight: "bold" },
-  turnLabel: { fontSize: "11px", fontWeight: "bold", color: "#2196F3" },
-  roscoWrapper: { display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "15px", marginTop: "5px" },
-  questionCard: { borderRadius: "15px", padding: "clamp(15px, 4vw, 20px)", marginBottom: "15px", textAlign: "center" },
-  slangBadge: { fontSize: "13px", color: "#FF9800", marginBottom: "8px", fontWeight: "bold" },
-  letterBadge: { fontSize: "11px", color: "#666", marginBottom: "8px" },
-  questionText: { fontSize: "clamp(16px, 5vw, 20px)", fontWeight: "bold", lineHeight: 1.4 },
-  inputContainer: { textAlign: "center", display: "flex", flexDirection: "column", gap: "10px", marginBottom: "15px" },
-  input: { fontSize: "clamp(14px, 4vw, 16px)", padding: "12px 15px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", width: "100%", boxSizing: "border-box" },
-  buttonGroupRow: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" },
-  answerButton: { fontSize: "clamp(14px, 4vw, 16px)", padding: "12px 20px", cursor: "pointer", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", flex: 1 },
-  pasapalabraButton: { fontSize: "clamp(14px, 4vw, 16px)", padding: "12px 20px", cursor: "pointer", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", fontWeight: "bold", flex: 1 },
-  message: { marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontSize: "clamp(13px, 4vw, 15px)", fontWeight: "bold" },
-  legend: { display: "flex", justifyContent: "center", gap: "clamp(10px, 4vw, 20px)", fontSize: "clamp(9px, 3vw, 11px)", flexWrap: "wrap", borderTop: "1px solid #ddd", paddingTop: "15px", marginTop: "5px" },
-  legendDotGrey: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px" },
-  legendDotGreen: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "4px" },
-  legendDotRed: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "4px" },
-  legendDotYellow: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "4px" },
-  legendDotOrange: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px", border: "2px solid #FF9800" },
-  summaryContainer: { fontFamily: "system-ui, -apple-system, sans-serif", padding: "20px", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" },
-  summaryTitle: { fontSize: "clamp(24px, 6vw, 36px)", textAlign: "center", marginBottom: "10px" },
-  winnerText: { fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center", marginBottom: "30px" },
-  summaryTable: { overflowX: "auto", marginBottom: "30px" },
-  table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" },
-  th: { padding: "12px", backgroundColor: "#2196F3", color: "white", fontWeight: "bold", border: "1px solid #ddd" },
-  td: { padding: "12px", textAlign: "center", border: "1px solid #ddd" },
-  winnerRow: { backgroundColor: "#FFF9C4" },
-  summaryDetails: { backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", marginBottom: "30px" },
-  playAgainButton: { padding: "15px 30px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "20px" }
-};
