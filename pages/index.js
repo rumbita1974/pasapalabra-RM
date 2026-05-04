@@ -106,21 +106,32 @@ function buildRosco(difficulty, seedOffset = 0) {
   return rosco;
 }
 
-function findNextPendingLetter(rosco, currentIndex) {
+function getNextPendingIndex(rosco, currentIndex) {
+  // Look for next pending letter (not correct, not wrong)
   for (let i = currentIndex + 1; i < rosco.length; i++) {
-    if (rosco[i].status === "pending") return i;
-  }
-  for (let i = 0; i < currentIndex; i++) {
     if (rosco[i].status === "pending") return i;
   }
   return -1;
 }
 
-function findFirstPendingLetter(rosco) {
+function getFirstPendingIndex(rosco) {
   for (let i = 0; i < rosco.length; i++) {
     if (rosco[i].status === "pending") return i;
   }
   return -1;
+}
+
+function hasPassedLetters(rosco) {
+  return rosco.some(item => item.passed === true);
+}
+
+function resetPassedLetters(rosco) {
+  return rosco.map(item => {
+    if (item.passed) {
+      return { ...item, passed: false };
+    }
+    return item;
+  });
 }
 
 /* =========================
@@ -138,18 +149,18 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
     return (index * 360 / letters.length) - 90;
   };
   
-  const getButtonColor = (letterStatus, isPassed) => {
-    if (isPassed) return "#FFC107";
-    switch(letterStatus) {
+  const getButtonColor = (item) => {
+    if (item.passed) return "#FFC107";
+    switch(item.status) {
       case 'correct': return '#4CAF50';
       case 'wrong': return '#f44336';
       default: return '#e0e0e0';
     }
   };
   
-  const getTextColor = (letterStatus, isPassed) => {
-    if (isPassed) return "#333";
-    return letterStatus === 'pending' ? '#333' : '#fff';
+  const getTextColor = (item) => {
+    if (item.passed) return "#333";
+    return item.status === 'pending' ? '#333' : '#fff';
   };
   
   return (
@@ -169,7 +180,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
                 cx={x}
                 cy={y}
                 r={buttonRadius}
-                fill={getButtonColor(item.status, item.passed)}
+                fill={getButtonColor(item)}
                 stroke={isCurrent ? "#FF9800" : "#999"}
                 strokeWidth={isCurrent ? 3 : 1.5}
                 onClick={() => item.status === "pending" && !item.passed && onLetterClick(item.letter)}
@@ -180,7 +191,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
                 y={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                fill={getTextColor(item.status, item.passed)}
+                fill={getTextColor(item)}
                 fontSize={fontSize}
                 fontWeight="bold"
                 style={{ cursor: item.status === "pending" && !item.passed ? "pointer" : "not-allowed", userSelect: "none" }}
@@ -211,7 +222,6 @@ export default function Game() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [gameFinished, setGameFinished] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const [secondRound, setSecondRound] = useState(false);
   
   const correctSound = useRef(null);
   const wrongSound = useRef(null);
@@ -238,6 +248,7 @@ export default function Game() {
     if (welcomeSound.current) welcomeSound.current.volume = 1.0;
   }, []);
 
+  // Timer effect
   useEffect(() => {
     if (setup || !game || gameFinished || showAnswer) return;
 
@@ -258,69 +269,6 @@ export default function Game() {
       if (timerInterval.current) clearInterval(timerInterval.current);
     };
   }, [setup, game, gameFinished, showAnswer, game?.currentPlayer]);
-
-  const handleTimeout = () => {
-    if (!game || gameFinished) return;
-    
-    const currentPlayer = game.currentPlayer;
-    const player = game.players[currentPlayer];
-    const currentItem = player.rosco[player.currentIndex];
-    
-    if (!currentItem || currentItem.status !== "pending") return;
-    
-    const updatedRosco = [...player.rosco];
-    updatedRosco[player.currentIndex] = {
-      ...currentItem,
-      status: "wrong"
-    };
-    
-    setShowAnswer(true);
-    setMessage({ 
-      text: `⏰ Tiempo agotado! Respuesta correcta: ${currentItem.answer.toUpperCase()}`, 
-      type: "error" 
-    });
-    
-    setGame(prev => ({
-      ...prev,
-      players: {
-        ...prev.players,
-        [currentPlayer]: {
-          ...player,
-          rosco: updatedRosco
-        }
-      }
-    }));
-    
-    wrongSound.current?.play();
-    
-    if (playersCount === 2 && !gameFinished) {
-      const nextPlayer = currentPlayer === 1 ? 2 : 1;
-      const nextPlayerData = game.players[nextPlayer];
-      const nextPendingIndex = findFirstPendingLetter(nextPlayerData.rosco);
-      
-      if (nextPendingIndex !== -1) {
-        setGame(prev => ({
-          ...prev,
-          currentPlayer: nextPlayer,
-          players: {
-            ...prev.players,
-            [nextPlayer]: {
-              ...nextPlayerData,
-              currentIndex: nextPendingIndex
-            }
-          }
-        }));
-      }
-    }
-    
-    setTimeout(() => {
-      setShowAnswer(false);
-      setMessage({ text: "", type: "" });
-    }, 2000);
-    
-    setInput("");
-    setTime(QUESTION_TIME);
-  };
 
   const startGame = () => {
     welcomeSound.current?.play();
@@ -349,7 +297,6 @@ export default function Game() {
 
     setSetup(false);
     setGameFinished(false);
-    setSecondRound(false);
     setTime(QUESTION_TIME);
     setInput("");
     setMessage({ text: "¡Comienza el Jugador 1! Letra A - 30 segundos", type: "info" });
@@ -358,127 +305,7 @@ export default function Game() {
     setTimeout(() => setMessage({ text: "", type: "" }), 2000);
   };
 
-  const handlePasapalabra = () => {
-    if (!game || gameFinished || showAnswer) return;
-    
-    const currentPlayer = game.currentPlayer;
-    const player = game.players[currentPlayer];
-    const currentItem = player.rosco[player.currentIndex];
-    
-    if (!currentItem || currentItem.status !== "pending") {
-      setMessage({ text: "⚠️ Esta letra ya fue respondida", type: "error" });
-      setTimeout(() => setMessage({ text: "", type: "" }), 1500);
-      return;
-    }
-    
-    const updatedRosco = [...player.rosco];
-    updatedRosco[player.currentIndex] = {
-      ...currentItem,
-      passed: true
-    };
-    
-    const nextIndex = findNextPendingLetter(updatedRosco, player.currentIndex);
-    
-    if (nextIndex === -1) {
-      const hasPassedLetters = updatedRosco.some(item => item.passed === true);
-      
-      if (hasPassedLetters && !secondRound) {
-        const resetRosco = updatedRosco.map(item => {
-          if (item.passed) {
-            return { ...item, passed: false };
-          }
-          return item;
-        });
-        
-        setGame(prev => ({
-          ...prev,
-          round: 2,
-          players: {
-            ...prev.players,
-            [currentPlayer]: {
-              ...player,
-              rosco: resetRosco,
-              currentIndex: findFirstPendingLetter(resetRosco)
-            }
-          }
-        }));
-        setSecondRound(true);
-        setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas se intentan de nuevo", type: "info" });
-        setTimeout(() => setMessage({ text: "", type: "" }), 2000);
-      } else {
-        setGame(prev => ({
-          ...prev,
-          players: {
-            ...prev.players,
-            [currentPlayer]: {
-              ...player,
-              rosco: updatedRosco,
-              completed: true
-            }
-          }
-        }));
-        
-        const otherPlayer = currentPlayer === 1 ? 2 : 1;
-        if (playersCount === 1 || game.players[otherPlayer]?.completed) {
-          setTimeout(() => endGame(), 1000);
-        } else {
-          const nextPlayer = currentPlayer === 1 ? 2 : 1;
-          const nextPlayerData = game.players[nextPlayer];
-          const nextPendingIndex = findFirstPendingLetter(nextPlayerData.rosco);
-          
-          setGame(prev => ({
-            ...prev,
-            currentPlayer: nextPlayer,
-            players: {
-              ...prev.players,
-              [nextPlayer]: {
-                ...nextPlayerData,
-                currentIndex: nextPendingIndex
-              }
-            }
-          }));
-        }
-      }
-    } else {
-      setGame(prev => ({
-        ...prev,
-        players: {
-          ...prev.players,
-          [currentPlayer]: {
-            ...player,
-            rosco: updatedRosco,
-            currentIndex: nextIndex
-          }
-        }
-      }));
-      
-      if (playersCount === 2) {
-        const nextPlayer = currentPlayer === 1 ? 2 : 1;
-        const nextPlayerData = game.players[nextPlayer];
-        const nextPendingIndex = findFirstPendingLetter(nextPlayerData.rosco);
-        
-        setGame(prev => ({
-          ...prev,
-          currentPlayer: nextPlayer,
-          players: {
-            ...prev.players,
-            [nextPlayer]: {
-              ...nextPlayerData,
-              currentIndex: nextPendingIndex
-            }
-          }
-        }));
-      }
-      
-      setMessage({ text: `⏭️ ¡Pasapalabra! Turno para el Jugador ${currentPlayer === 1 ? 2 : 1}`, type: "info" });
-      setTimeout(() => setMessage({ text: "", type: "" }), 1500);
-    }
-    
-    setTime(QUESTION_TIME);
-    setInput("");
-  };
-
-  const handleWrongAnswer = (errorMessage = null) => {
+  const handleTimeout = () => {
     if (!game || gameFinished) return;
     
     const currentPlayer = game.currentPlayer;
@@ -487,6 +314,7 @@ export default function Game() {
     
     if (!currentItem || currentItem.status !== "pending") return;
     
+    // Mark as wrong
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
@@ -495,9 +323,12 @@ export default function Game() {
     
     setShowAnswer(true);
     setMessage({ 
-      text: errorMessage || `❌ Incorrecto. Respuesta correcta: ${currentItem.answer.toUpperCase()}`, 
+      text: `⏰ Tiempo agotado! Respuesta: ${currentItem.answer.toUpperCase()}`, 
       type: "error" 
     });
+    
+    // Find next letter
+    const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     setGame(prev => ({
       ...prev,
@@ -505,19 +336,21 @@ export default function Game() {
         ...prev.players,
         [currentPlayer]: {
           ...player,
-          rosco: updatedRosco
+          rosco: updatedRosco,
+          currentIndex: nextIndex !== -1 ? nextIndex : player.currentIndex
         }
       }
     }));
     
     wrongSound.current?.play();
     
+    // Switch player in 2-player mode
     if (playersCount === 2 && !gameFinished) {
       const nextPlayer = currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
-      const nextPendingIndex = findFirstPendingLetter(nextPlayerData.rosco);
+      const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
       
-      if (nextPendingIndex !== -1) {
+      if (nextPlayerIndex !== -1) {
         setGame(prev => ({
           ...prev,
           currentPlayer: nextPlayer,
@@ -525,7 +358,7 @@ export default function Game() {
             ...prev.players,
             [nextPlayer]: {
               ...nextPlayerData,
-              currentIndex: nextPendingIndex
+              currentIndex: nextPlayerIndex
             }
           }
         }));
@@ -550,6 +383,7 @@ export default function Game() {
     
     if (!currentItem || currentItem.status !== "pending") return;
     
+    // Mark as correct
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
@@ -557,18 +391,15 @@ export default function Game() {
       passed: false
     };
     
-    const nextIndex = findNextPendingLetter(updatedRosco, player.currentIndex);
+    // Find next letter
+    const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
-      const hasPassedLetters = updatedRosco.some(item => item.passed === true);
-      
-      if (hasPassedLetters && !secondRound) {
-        const resetRosco = updatedRosco.map(item => {
-          if (item.passed) {
-            return { ...item, passed: false };
-          }
-          return item;
-        });
+      // Check for second round
+      if (hasPassedLetters(updatedRosco) && game.round === 1) {
+        // Start second round
+        const resetRosco = resetPassedLetters(updatedRosco);
+        const firstPending = getFirstPendingIndex(resetRosco);
         
         setGame(prev => ({
           ...prev,
@@ -578,15 +409,16 @@ export default function Game() {
             [currentPlayer]: {
               ...player,
               rosco: resetRosco,
-              currentIndex: findFirstPendingLetter(resetRosco),
+              currentIndex: firstPending !== -1 ? firstPending : 0,
               score: player.score + 1
             }
           }
         }));
-        setSecondRound(true);
+        
         setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas se intentan de nuevo", type: "info" });
         setTimeout(() => setMessage({ text: "", type: "" }), 2000);
       } else {
+        // Game completed for this player
         setGame(prev => ({
           ...prev,
           players: {
@@ -602,23 +434,23 @@ export default function Game() {
         
         setMessage({ text: `🎉 ¡Jugador ${currentPlayer} completó el ROSCO! 🎉`, type: "success" });
         
+        // Check if game should end
         const otherPlayer = currentPlayer === 1 ? 2 : 1;
         if (playersCount === 1 || game.players[otherPlayer]?.completed) {
           setTimeout(() => endGame(), 2000);
         } else {
+          // Switch to other player
           setTimeout(() => {
-            const nextPlayer = currentPlayer === 1 ? 2 : 1;
-            const nextPlayerData = game.players[nextPlayer];
-            const nextPendingIndex = findFirstPendingLetter(nextPlayerData.rosco);
-            
+            const nextPlayerData = game.players[otherPlayer];
+            const nextIndex = getFirstPendingIndex(nextPlayerData.rosco);
             setGame(prev => ({
               ...prev,
-              currentPlayer: nextPlayer,
+              currentPlayer: otherPlayer,
               players: {
                 ...prev.players,
-                [nextPlayer]: {
+                [otherPlayer]: {
                   ...nextPlayerData,
-                  currentIndex: nextPendingIndex
+                  currentIndex: nextIndex !== -1 ? nextIndex : 0
                 }
               }
             }));
@@ -626,6 +458,7 @@ export default function Game() {
         }
       }
     } else {
+      // Move to next letter, same player continues
       setGame(prev => ({
         ...prev,
         players: {
@@ -638,12 +471,218 @@ export default function Game() {
           }
         }
       }));
-      setTime(QUESTION_TIME);
+      
       setMessage({ text: `✅ ¡Correcto! Letra ${updatedRosco[nextIndex].letter}`, type: "success" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     }
     
     correctSound.current?.play();
+    setInput("");
+    setTime(QUESTION_TIME);
+  };
+
+  const handleWrongAnswer = () => {
+    if (!game || gameFinished) return;
+    
+    const currentPlayer = game.currentPlayer;
+    const player = game.players[currentPlayer];
+    const currentItem = player.rosco[player.currentIndex];
+    
+    if (!currentItem || currentItem.status !== "pending") return;
+    
+    // Mark as wrong
+    const updatedRosco = [...player.rosco];
+    updatedRosco[player.currentIndex] = {
+      ...currentItem,
+      status: "wrong"
+    };
+    
+    setShowAnswer(true);
+    setMessage({ 
+      text: `❌ Incorrecto. Respuesta: ${currentItem.answer.toUpperCase()}`, 
+      type: "error" 
+    });
+    
+    // Find next letter
+    const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
+    
+    if (nextIndex === -1) {
+      // Check for second round
+      if (hasPassedLetters(updatedRosco) && game.round === 1) {
+        const resetRosco = resetPassedLetters(updatedRosco);
+        const firstPending = getFirstPendingIndex(resetRosco);
+        
+        setGame(prev => ({
+          ...prev,
+          round: 2,
+          players: {
+            ...prev.players,
+            [currentPlayer]: {
+              ...player,
+              rosco: resetRosco,
+              currentIndex: firstPending !== -1 ? firstPending : 0
+            }
+          }
+        }));
+        
+        setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas se intentan de nuevo", type: "info" });
+        setTimeout(() => setMessage({ text: "", type: "" }), 2000);
+      } else {
+        setGame(prev => ({
+          ...prev,
+          players: {
+            ...prev.players,
+            [currentPlayer]: {
+              ...player,
+              rosco: updatedRosco,
+              completed: true
+            }
+          }
+        }));
+        
+        const otherPlayer = currentPlayer === 1 ? 2 : 1;
+        if (playersCount === 1 || game.players[otherPlayer]?.completed) {
+          setTimeout(() => endGame(), 2000);
+        } else {
+          setTimeout(() => {
+            const nextPlayerData = game.players[otherPlayer];
+            const nextIdx = getFirstPendingIndex(nextPlayerData.rosco);
+            setGame(prev => ({
+              ...prev,
+              currentPlayer: otherPlayer,
+              players: {
+                ...prev.players,
+                [otherPlayer]: {
+                  ...nextPlayerData,
+                  currentIndex: nextIdx !== -1 ? nextIdx : 0
+                }
+              }
+            }));
+          }, 2000);
+        }
+      }
+    } else {
+      // Update player's progress
+      setGame(prev => ({
+        ...prev,
+        players: {
+          ...prev.players,
+          [currentPlayer]: {
+            ...player,
+            rosco: updatedRosco,
+            currentIndex: nextIndex
+          }
+        }
+      }));
+      
+      // Switch player in 2-player mode
+      if (playersCount === 2) {
+        const nextPlayer = currentPlayer === 1 ? 2 : 1;
+        const nextPlayerData = game.players[nextPlayer];
+        const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
+        
+        if (nextPlayerIndex !== -1) {
+          setGame(prev => ({
+            ...prev,
+            currentPlayer: nextPlayer,
+            players: {
+              ...prev.players,
+              [nextPlayer]: {
+                ...nextPlayerData,
+                currentIndex: nextPlayerIndex
+              }
+            }
+          }));
+        }
+      }
+    }
+    
+    wrongSound.current?.play();
+    
+    setTimeout(() => {
+      setShowAnswer(false);
+      setMessage({ text: "", type: "" });
+    }, 2000);
+    
+    setInput("");
+    setTime(QUESTION_TIME);
+  };
+
+  const handlePasapalabra = () => {
+    if (!game || gameFinished || showAnswer) return;
+    
+    const currentPlayer = game.currentPlayer;
+    const player = game.players[currentPlayer];
+    const currentItem = player.rosco[player.currentIndex];
+    
+    if (!currentItem || currentItem.status !== "pending") {
+      setMessage({ text: "⚠️ Esta letra ya fue respondida", type: "error" });
+      setTimeout(() => setMessage({ text: "", type: "" }), 1500);
+      return;
+    }
+    
+    // Mark as passed (yellow)
+    const updatedRosco = [...player.rosco];
+    updatedRosco[player.currentIndex] = {
+      ...currentItem,
+      passed: true
+    };
+    
+    // Find next pending letter (not passed)
+    let nextIndex = -1;
+    for (let i = player.currentIndex + 1; i < updatedRosco.length; i++) {
+      if (updatedRosco[i].status === "pending" && !updatedRosco[i].passed) {
+        nextIndex = i;
+        break;
+      }
+    }
+    if (nextIndex === -1) {
+      for (let i = 0; i < player.currentIndex; i++) {
+        if (updatedRosco[i].status === "pending" && !updatedRosco[i].passed) {
+          nextIndex = i;
+          break;
+        }
+      }
+    }
+    
+    // Update player's progress
+    setGame(prev => ({
+      ...prev,
+      players: {
+        ...prev.players,
+        [currentPlayer]: {
+          ...player,
+          rosco: updatedRosco,
+          currentIndex: nextIndex !== -1 ? nextIndex : player.currentIndex
+        }
+      }
+    }));
+    
+    // Switch player (only in 2-player mode, otherwise stay on same player)
+    if (playersCount === 2) {
+      const nextPlayer = currentPlayer === 1 ? 2 : 1;
+      const nextPlayerData = game.players[nextPlayer];
+      const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
+      
+      if (nextPlayerIndex !== -1) {
+        setGame(prev => ({
+          ...prev,
+          currentPlayer: nextPlayer,
+          players: {
+            ...prev.players,
+            [nextPlayer]: {
+              ...nextPlayerData,
+              currentIndex: nextPlayerIndex
+            }
+          }
+        }));
+      }
+    }
+    
+    setMessage({ text: `⏭️ ¡Pasapalabra! ${playersCount === 2 ? `Turno Jugador ${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
+    setTimeout(() => setMessage({ text: "", type: "" }), 1500);
+    
+    setTime(QUESTION_TIME);
     setInput("");
   };
 
@@ -694,19 +733,14 @@ export default function Game() {
       setInput("");
       setMessage({ text: `Saltaste a la letra ${letter}`, type: "info" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1000);
-    } else if (letterIndex !== -1 && player.rosco[letterIndex].status !== "pending") {
-      setMessage({ text: `La letra ${letter} ya fue ${player.rosco[letterIndex].status === "correct" ? "acertada" : "fallada"}`, type: "error" });
-      setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     } else if (letterIndex !== -1 && player.rosco[letterIndex].passed) {
-      setMessage({ text: `La letra ${letter} fue pasada con Pasapalabra - se intentará en la segunda ronda`, type: "info" });
+      setMessage({ text: `La letra ${letter} fue pasada - se intentará en segunda ronda`, type: "info" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     }
   };
 
   const endGame = () => {
     if (!game) return;
-    
-    setGameFinished(true);
     
     const p1Correct = game.players[1].rosco.filter(r => r.status === "correct").length;
     const p1Wrong = game.players[1].rosco.filter(r => r.status === "wrong").length;
@@ -726,6 +760,7 @@ export default function Game() {
     
     const winner = p1Score > p2Score ? 1 : (p2Score > p1Score ? 2 : 0);
     
+    setGameFinished(true);
     setMessage({ 
       text: winner === 1 ? "🎮 JUGADOR 1 GANA 🎮" : winner === 2 ? "🎮 JUGADOR 2 GANA 🎮" : "🎮 EMPATE 🎮", 
       type: "gameover" 
@@ -742,13 +777,13 @@ export default function Game() {
     return () => window.removeEventListener("keydown", handler);
   });
 
+  // Setup Screen
   if (setup) {
     return (
       <>
         <Head>
           <title>Pasapalabra Venezuela</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
-          <meta name="description" content="Juego de Pasapalabra con palabras venezolanas" />
         </Head>
         <div style={styles.setupContainer}>
           <h1 style={styles.title}>🎙️ Pasapalabra<br/>Venezuela 🎙️</h1>
@@ -757,73 +792,21 @@ export default function Game() {
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>👥 Jugadores</h3>
             <div style={styles.buttonGroup}>
-              <button 
-                onClick={() => setPlayersCount(1)} 
-                style={{
-                  ...styles.choiceButton,
-                  backgroundColor: playersCount === 1 ? "#2196F3" : "#fff",
-                  color: playersCount === 1 ? "#fff" : "#333",
-                  borderColor: playersCount === 1 ? "#2196F3" : "#ccc"
-                }}
-              >
-                1 jugador
-              </button>
-              <button 
-                onClick={() => setPlayersCount(2)} 
-                style={{
-                  ...styles.choiceButton,
-                  backgroundColor: playersCount === 2 ? "#2196F3" : "#fff",
-                  color: playersCount === 2 ? "#fff" : "#333",
-                  borderColor: playersCount === 2 ? "#2196F3" : "#ccc"
-                }}
-              >
-                2 jugadores
-              </button>
+              <button onClick={() => setPlayersCount(1)} style={{...styles.choiceButton, backgroundColor: playersCount === 1 ? "#2196F3" : "#fff", color: playersCount === 1 ? "#fff" : "#333", borderColor: playersCount === 1 ? "#2196F3" : "#ccc"}}>1 jugador</button>
+              <button onClick={() => setPlayersCount(2)} style={{...styles.choiceButton, backgroundColor: playersCount === 2 ? "#2196F3" : "#fff", color: playersCount === 2 ? "#fff" : "#333", borderColor: playersCount === 2 ? "#2196F3" : "#ccc"}}>2 jugadores</button>
             </div>
           </div>
 
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>📚 Dificultad</h3>
             <div style={styles.buttonGroup}>
-              <button 
-                onClick={() => setDifficulty("easy")} 
-                style={{
-                  ...styles.choiceButton,
-                  backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff",
-                  color: difficulty === "easy" ? "#fff" : "#333",
-                  borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc"
-                }}
-              >
-                Fácil
-              </button>
-              <button 
-                onClick={() => setDifficulty("medium")} 
-                style={{
-                  ...styles.choiceButton,
-                  backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff",
-                  color: difficulty === "medium" ? "#fff" : "#333",
-                  borderColor: difficulty === "medium" ? "#FF9800" : "#ccc"
-                }}
-              >
-                Medio
-              </button>
-              <button 
-                onClick={() => setDifficulty("hard")} 
-                style={{
-                  ...styles.choiceButton,
-                  backgroundColor: difficulty === "hard" ? "#f44336" : "#fff",
-                  color: difficulty === "hard" ? "#fff" : "#333",
-                  borderColor: difficulty === "hard" ? "#f44336" : "#ccc"
-                }}
-              >
-                Difícil
-              </button>
+              <button onClick={() => setDifficulty("easy")} style={{...styles.choiceButton, backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff", color: difficulty === "easy" ? "#fff" : "#333", borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc"}}>Fácil</button>
+              <button onClick={() => setDifficulty("medium")} style={{...styles.choiceButton, backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff", color: difficulty === "medium" ? "#fff" : "#333", borderColor: difficulty === "medium" ? "#FF9800" : "#ccc"}}>Medio</button>
+              <button onClick={() => setDifficulty("hard")} style={{...styles.choiceButton, backgroundColor: difficulty === "hard" ? "#f44336" : "#fff", color: difficulty === "hard" ? "#fff" : "#333", borderColor: difficulty === "hard" ? "#f44336" : "#ccc"}}>Difícil</button>
             </div>
           </div>
 
-          <button onClick={startGame} style={styles.startButton}>
-            🎮 Empezar Partida
-          </button>
+          <button onClick={startGame} style={styles.startButton}>🎮 Empezar Partida</button>
           
           <div style={styles.rulesContainer}>
             <h3 style={styles.rulesTitle}>📖 Reglas:</h3>
@@ -831,29 +814,27 @@ export default function Game() {
               <li>📌 Cada jugador tiene su propio rosco</li>
               <li>🎯 Empieza el Jugador 1 desde la letra A</li>
               <li>✅ Si acierta: suma punto y continúa el mismo jugador</li>
-              <li>❌ Si falla o tiempo agotado: NO suma punto y PASA EL TURNO</li>
-              <li>⏭️ Botón "PASAPALABRA": pasa la letra (amarilla) y cambia el turno</li>
-              <li>🔄 Las letras pasadas se intentan en una segunda ronda</li>
-              <li>🏆 Gana quien tenga más aciertos al final</li>
+              <li>❌ Si falla o tiempo agotado: NO suma punto</li>
+              <li>🎮 1 jugador: continúa con la siguiente letra</li>
+              <li>👥 2 jugadores: fallo = pasa el turno al otro jugador</li>
+              <li>⏭️ PASAPALABRA: pasa la letra a segunda ronda</li>
+              <li>🔄 Segunda ronda: se intentan las letras pasadas</li>
+              <li>🏆 Gana quien tenga más aciertos</li>
               <li>🇻🇪 Cada rosco incluye 2-3 palabras venezolanas</li>
-              <li>⏱️ 30 segundos por pregunta - Se reinicia en cada letra</li>
+              <li>⏱️ 30 segundos por pregunta</li>
             </ul>
           </div>
 
           <div style={styles.copyright}>
-            <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px" }}>
-              Designed by Armando Guillen - Copyright 2026
-            </p>
-            <p style={{ fontSize: "12px", marginTop: "0" }}>
-              (no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game) 
-              - All rights remain with their corresponding owners.
-            </p>
+            <p style={{ fontSize: "14px", fontWeight: "bold", marginBottom: "8px" }}>Designed by Armando Guillen - Copyright 2026</p>
+            <p style={{ fontSize: "12px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game) - All rights remain with their corresponding owners.</p>
           </div>
         </div>
       </>
     );
   }
 
+  // Game Finished Screen
   if (gameFinished && game) {
     const p1Correct = game.players[1].rosco.filter(r => r.status === "correct").length;
     const p1Wrong = game.players[1].rosco.filter(r => r.status === "wrong").length;
@@ -875,45 +856,19 @@ export default function Game() {
     
     return (
       <>
-        <Head>
-          <title>Pasapalabra - Resultados Finales</title>
-          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
-        </Head>
+        <Head><title>Pasapalabra - Resultados Finales</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
         <div style={styles.summaryContainer}>
           <h1 style={styles.summaryTitle}>🏆 RESULTADOS FINALES 🏆</h1>
-          
           {winner === 1 && <h2 style={styles.winnerText}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
           {winner === 2 && <h2 style={styles.winnerText}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
           {winner === 0 && <h2 style={styles.winnerText}>🤝 ¡EMPATE! 🤝</h2>}
           
           <div style={styles.summaryTable}>
             <table style={styles.table}>
-              <thead>
-                <tr>
-                  <th style={styles.th}>Jugador</th>
-                  <th style={styles.th}>✅ Correctas</th>
-                  <th style={styles.th}>❌ Incorrectas</th>
-                  <th style={styles.th}>⏭️ Pasadas</th>
-                  <th style={styles.th}>⭐ Puntuación</th>
-                </tr>
-              </thead>
+              <thead><tr><th style={styles.th}>Jugador</th><th style={styles.th}>✅ Correctas</th><th style={styles.th}>❌ Incorrectas</th><th style={styles.th}>⏭️ Pasadas</th><th style={styles.th}>⭐ Puntuación</th></tr></thead>
               <tbody>
-                <tr style={winner === 1 ? styles.winnerRow : {}}>
-                  <td style={styles.td}><strong>Jugador 1</strong></td>
-                  <td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p1Correct}</td>
-                  <td style={{...styles.td, color: "#f44336"}}>{p1Wrong}</td>
-                  <td style={{...styles.td, color: "#FFC107"}}>{p1Passed}</td>
-                  <td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#2196F3"}}>{p1Score}</td>
-                </tr>
-                {twoPlayer && (
-                  <tr style={winner === 2 ? styles.winnerRow : {}}>
-                    <td style={styles.td}><strong>Jugador 2</strong></td>
-                    <td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p2Correct}</td>
-                    <td style={{...styles.td, color: "#f44336"}}>{p2Wrong}</td>
-                    <td style={{...styles.td, color: "#FFC107"}}>{p2Passed}</td>
-                    <td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#FF9800"}}>{p2Score}</td>
-                  </tr>
-                )}
+                <tr style={winner === 1 ? styles.winnerRow : {}}><td style={styles.td}><strong>Jugador 1</strong></td><td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p1Correct}</td><td style={{...styles.td, color: "#f44336"}}>{p1Wrong}</td><td style={{...styles.td, color: "#FFC107"}}>{p1Passed}</td><td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#2196F3"}}>{p1Score}</td></tr>
+                {twoPlayer && (<tr style={winner === 2 ? styles.winnerRow : {}}><td style={styles.td}><strong>Jugador 2</strong></td><td style={{...styles.td, color: "#4CAF50", fontWeight: "bold"}}>{p2Correct}</td><td style={{...styles.td, color: "#f44336"}}>{p2Wrong}</td><td style={{...styles.td, color: "#FFC107"}}>{p2Passed}</td><td style={{...styles.td, fontSize: "20px", fontWeight: "bold", color: "#FF9800"}}>{p2Score}</td></tr>)}
               </tbody>
             </table>
           </div>
@@ -926,23 +881,9 @@ export default function Game() {
             <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
           </div>
           
-          <button onClick={() => {
-            setSetup(true);
-            setGame(null);
-            setGameFinished(false);
-            setSecondRound(false);
-          }} style={styles.playAgainButton}>
-            🔄 Jugar de Nuevo
-          </button>
+          <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={styles.playAgainButton}>🔄 Jugar de Nuevo</button>
           
-          <div style={styles.copyright}>
-            <p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "4px" }}>
-              Designed by Armando Guillen - Copyright 2026
-            </p>
-            <p style={{ fontSize: "10px", marginTop: "0" }}>
-              (no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)
-            </p>
-          </div>
+          <div style={styles.copyright}><p style={{ fontSize: "12px", fontWeight: "bold", marginBottom: "4px" }}>Designed by Armando Guillen - Copyright 2026</p><p style={{ fontSize: "10px", marginTop: "0" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p></div>
         </div>
       </>
     );
@@ -956,100 +897,50 @@ export default function Game() {
 
   return (
     <>
-      <Head>
-        <title>Pasapalabra - Jugador {game.currentPlayer}</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
-      </Head>
+      <Head><title>Pasapalabra - Jugador {game.currentPlayer}</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
       <div style={styles.gameContainer}>
         <div style={styles.header}>
-          <div style={{
-            ...styles.playerCard,
-            backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5",
-            border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd"
-          }}>
+          <div style={{...styles.playerCard, backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd"}}>
             <div style={{ fontWeight: "bold" }}>👤 Jugador 1</div>
             <div style={styles.playerScore}>{game.players[1].score}</div>
-            <div style={styles.playerProgress}>
-              ✅{game.players[1].rosco.filter(r => r.status === "correct").length} 
-              ❌{game.players[1].rosco.filter(r => r.status === "wrong").length}
-              ⏭️{game.players[1].rosco.filter(r => r.passed).length}
-            </div>
+            <div style={styles.playerProgress}>✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[1].rosco.filter(r => r.passed).length}</div>
           </div>
           
           <div style={styles.timerContainer}>
-            <div style={{ ...styles.timer, color: time <= 10 ? "#f44336" : "#333" }}>
-              ⏱️ {time}s
-            </div>
+            <div style={{ ...styles.timer, color: time <= 10 ? "#f44336" : "#333" }}>⏱️ {time}s</div>
             <div style={styles.turnLabel}>🎯 Ronda {game.round} - Turno J{game.currentPlayer}</div>
           </div>
           
           {game.players[2] && (
-            <div style={{
-              ...styles.playerCard,
-              backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5",
-              border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd"
-            }}>
+            <div style={{...styles.playerCard, backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd"}}>
               <div style={{ fontWeight: "bold" }}>👤 Jugador 2</div>
               <div style={{ ...styles.playerScore, color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={styles.playerProgress}>
-                ✅{game.players[2].rosco.filter(r => r.status === "correct").length} 
-                ❌{game.players[2].rosco.filter(r => r.status === "wrong").length}
-                ⏭️{game.players[2].rosco.filter(r => r.passed).length}
-              </div>
+              <div style={styles.playerProgress}>✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length} ⏭️{game.players[2].rosco.filter(r => r.passed).length}</div>
             </div>
           )}
         </div>
 
         <div style={styles.roscoWrapper}>
-          <CircularRosco 
-            letters={player.rosco}
-            currentLetter={currentItem.letter}
-            onLetterClick={jumpToLetter}
-            isMobile={isMobile}
-          />
+          <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} isMobile={isMobile} />
         </div>
 
-        <div style={{
-          ...styles.questionCard,
-          backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5",
-          border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd"
-        }}>
-          {currentItem.isSlang && (
-            <div style={styles.slangBadge}>🇻🇪 Palabra Venezolana 🇻🇪</div>
-          )}
+        <div style={{...styles.questionCard, backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd"}}>
+          {currentItem.isSlang && <div style={styles.slangBadge}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
           <div style={styles.letterBadge}>Letra {currentItem.letter} ({remainingCount} restantes, {passedCount} pasadas)</div>
           <div style={styles.questionText}>{currentItem.question}</div>
         </div>
 
         {!showAnswer && (
           <div style={styles.inputContainer}>
-            <input
-              style={styles.input}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Escribe tu respuesta..."
-              autoFocus
-            />
-            <div style={styles.buttonGroup}>
-              <button onClick={answer} style={styles.answerButton}>
-                📝 Responder
-              </button>
-              <button onClick={handlePasapalabra} style={styles.pasapalabraButton}>
-                ⏭️ PASAPALABRA
-              </button>
+            <input style={styles.input} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Escribe tu respuesta..." autoFocus />
+            <div style={styles.buttonGroupRow}>
+              <button onClick={answer} style={styles.answerButton}>📝 Responder</button>
+              <button onClick={handlePasapalabra} style={styles.pasapalabraButton}>⏭️ PASAPALABRA</button>
             </div>
           </div>
         )}
 
-        {message.text && (
-          <div style={{
-            ...styles.message,
-            backgroundColor: message.type === "success" ? "#C8E6C9" : 
-                            message.type === "error" ? "#FFCDD2" : "#BBDEFB"
-          }}>
-            {message.text}
-          </div>
-        )}
+        {message.text && <div style={{...styles.message, backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB"}}>{message.text}</div>}
 
         <div style={styles.legend}>
           <div><span style={styles.legendDotGrey}></span> Sin responder</div>
@@ -1064,311 +955,51 @@ export default function Game() {
 }
 
 const styles = {
-  setupContainer: {
-    textAlign: "center",
-    padding: "20px",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    maxWidth: "600px",
-    margin: "0 auto",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center"
-  },
-  title: {
-    fontSize: "clamp(32px, 8vw, 48px)",
-    marginBottom: "10px"
-  },
-  subtitle: {
-    marginBottom: "30px",
-    fontSize: "clamp(14px, 4vw, 18px)",
-    color: "#666"
-  },
-  section: {
-    marginBottom: "30px"
-  },
-  sectionTitle: {
-    marginBottom: "10px"
-  },
-  buttonGroup: {
-    display: "flex",
-    gap: "10px",
-    justifyContent: "center",
-    flexWrap: "wrap"
-  },
-  choiceButton: {
-    padding: "12px 24px",
-    fontSize: "16px",
-    cursor: "pointer",
-    border: "2px solid",
-    borderRadius: "10px",
-    transition: "all 0.3s",
-    fontWeight: "bold"
-  },
-  startButton: {
-    padding: "15px 30px",
-    fontSize: "clamp(16px, 5vw, 20px)",
-    cursor: "pointer",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    marginBottom: "30px"
-  },
-  rulesContainer: {
-    textAlign: "left",
-    backgroundColor: "#f5f5f5",
-    padding: "20px",
-    borderRadius: "15px",
-    marginTop: "20px"
-  },
-  rulesList: {
-    margin: 0,
-    paddingLeft: "20px",
-    lineHeight: 1.8
-  },
-  copyright: {
-    marginTop: "30px",
-    padding: "20px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "10px",
-    borderTop: "2px solid #ddd",
-    marginBottom: "20px"
-  },
-  gameContainer: {
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    padding: "clamp(10px, 3vw, 20px)",
-    maxWidth: "700px",
-    margin: "0 auto",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column"
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: "10px",
-    marginBottom: "20px",
-    flexWrap: "wrap"
-  },
-  playerCard: {
-    padding: "8px 12px",
-    borderRadius: "10px",
-    textAlign: "center",
-    flex: 1,
-    minWidth: "80px",
-    transition: "all 0.3s"
-  },
-  playerScore: {
-    fontSize: "clamp(20px, 6vw, 28px)",
-    fontWeight: "bold",
-    color: "#2196F3"
-  },
-  playerProgress: {
-    fontSize: "9px",
-    color: "#666"
-  },
-  timerContainer: {
-    textAlign: "center",
-    flex: 1
-  },
-  timer: {
-    fontSize: "clamp(28px, 7vw, 42px)",
-    fontWeight: "bold"
-  },
-  turnLabel: {
-    fontSize: "11px",
-    fontWeight: "bold",
-    color: "#2196F3"
-  },
-  roscoWrapper: {
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: "15px",
-    marginTop: "5px"
-  },
-  questionCard: {
-    borderRadius: "15px",
-    padding: "clamp(15px, 4vw, 20px)",
-    marginBottom: "15px",
-    textAlign: "center"
-  },
-  slangBadge: {
-    fontSize: "13px",
-    color: "#FF9800",
-    marginBottom: "8px",
-    fontWeight: "bold"
-  },
-  letterBadge: {
-    fontSize: "11px",
-    color: "#666",
-    marginBottom: "8px"
-  },
-  questionText: {
-    fontSize: "clamp(16px, 5vw, 20px)",
-    fontWeight: "bold",
-    lineHeight: 1.4
-  },
-  inputContainer: {
-    textAlign: "center",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    marginBottom: "15px"
-  },
-  input: {
-    fontSize: "clamp(14px, 4vw, 16px)",
-    padding: "12px 15px",
-    borderRadius: "10px",
-    border: "2px solid #ccc",
-    outline: "none",
-    width: "100%",
-    boxSizing: "border-box"
-  },
-  answerButton: {
-    fontSize: "clamp(14px, 4vw, 16px)",
-    padding: "12px 20px",
-    cursor: "pointer",
-    backgroundColor: "#2196F3",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    flex: 1
-  },
-  pasapalabraButton: {
-    fontSize: "clamp(14px, 4vw, 16px)",
-    padding: "12px 20px",
-    cursor: "pointer",
-    backgroundColor: "#FFC107",
-    color: "#333",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    flex: 1
-  },
-  message: {
-    marginBottom: "15px",
-    padding: "12px",
-    borderRadius: "10px",
-    textAlign: "center",
-    fontSize: "clamp(13px, 4vw, 15px)",
-    fontWeight: "bold"
-  },
-  legend: {
-    display: "flex",
-    justifyContent: "center",
-    gap: "clamp(10px, 4vw, 20px)",
-    fontSize: "clamp(9px, 3vw, 11px)",
-    flexWrap: "wrap",
-    borderTop: "1px solid #ddd",
-    paddingTop: "15px",
-    marginTop: "5px"
-  },
-  legendDotGrey: {
-    display: "inline-block",
-    width: "14px",
-    height: "14px",
-    backgroundColor: "#e0e0e0",
-    borderRadius: "50%",
-    marginRight: "4px"
-  },
-  legendDotGreen: {
-    display: "inline-block",
-    width: "14px",
-    height: "14px",
-    backgroundColor: "#4CAF50",
-    borderRadius: "50%",
-    marginRight: "4px"
-  },
-  legendDotRed: {
-    display: "inline-block",
-    width: "14px",
-    height: "14px",
-    backgroundColor: "#f44336",
-    borderRadius: "50%",
-    marginRight: "4px"
-  },
-  legendDotYellow: {
-    display: "inline-block",
-    width: "14px",
-    height: "14px",
-    backgroundColor: "#FFC107",
-    borderRadius: "50%",
-    marginRight: "4px"
-  },
-  legendDotOrange: {
-    display: "inline-block",
-    width: "14px",
-    height: "14px",
-    backgroundColor: "#e0e0e0",
-    borderRadius: "50%",
-    marginRight: "4px",
-    border: "2px solid #FF9800"
-  },
-  summaryContainer: {
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    padding: "20px",
-    maxWidth: "700px",
-    margin: "0 auto",
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center"
-  },
-  summaryTitle: {
-    fontSize: "clamp(24px, 6vw, 36px)",
-    textAlign: "center",
-    marginBottom: "10px"
-  },
-  winnerText: {
-    fontSize: "clamp(20px, 5vw, 28px)",
-    textAlign: "center",
-    marginBottom: "30px"
-  },
-  summaryTable: {
-    overflowX: "auto",
-    marginBottom: "30px"
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    backgroundColor: "#fff",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-  },
-  th: {
-    padding: "12px",
-    backgroundColor: "#2196F3",
-    color: "white",
-    fontWeight: "bold",
-    border: "1px solid #ddd"
-  },
-  td: {
-    padding: "12px",
-    textAlign: "center",
-    border: "1px solid #ddd"
-  },
-  winnerRow: {
-    backgroundColor: "#FFF9C4"
-  },
-  summaryDetails: {
-    backgroundColor: "#f5f5f5",
-    padding: "20px",
-    borderRadius: "10px",
-    marginBottom: "30px"
-  },
-  playAgainButton: {
-    padding: "15px 30px",
-    fontSize: "18px",
-    cursor: "pointer",
-    backgroundColor: "#4CAF50",
-    color: "white",
-    border: "none",
-    borderRadius: "10px",
-    fontWeight: "bold",
-    marginBottom: "20px"
-  }
+  setupContainer: { textAlign: "center", padding: "20px", fontFamily: "system-ui, -apple-system, sans-serif", maxWidth: "600px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" },
+  title: { fontSize: "clamp(32px, 8vw, 48px)", marginBottom: "10px" },
+  subtitle: { marginBottom: "30px", fontSize: "clamp(14px, 4vw, 18px)", color: "#666" },
+  section: { marginBottom: "30px" },
+  sectionTitle: { marginBottom: "10px" },
+  buttonGroup: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" },
+  choiceButton: { padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", transition: "all 0.3s", fontWeight: "bold" },
+  startButton: { padding: "15px 30px", fontSize: "clamp(16px, 5vw, 20px)", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "30px" },
+  rulesContainer: { textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "20px" },
+  rulesTitle: { marginTop: 0, marginBottom: "10px" },
+  rulesList: { margin: 0, paddingLeft: "20px", lineHeight: 1.8 },
+  copyright: { marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px", borderTop: "2px solid #ddd", marginBottom: "20px" },
+  gameContainer: { fontFamily: "system-ui, -apple-system, sans-serif", padding: "clamp(10px, 3vw, 20px)", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column" },
+  header: { display: "flex", justifyContent: "space-between", alignItems: "center", gap: "10px", marginBottom: "20px", flexWrap: "wrap" },
+  playerCard: { padding: "8px 12px", borderRadius: "10px", textAlign: "center", flex: 1, minWidth: "80px", transition: "all 0.3s" },
+  playerScore: { fontSize: "clamp(20px, 6vw, 28px)", fontWeight: "bold", color: "#2196F3" },
+  playerProgress: { fontSize: "9px", color: "#666" },
+  timerContainer: { textAlign: "center", flex: 1 },
+  timer: { fontSize: "clamp(28px, 7vw, 42px)", fontWeight: "bold" },
+  turnLabel: { fontSize: "11px", fontWeight: "bold", color: "#2196F3" },
+  roscoWrapper: { display: "flex", justifyContent: "center", alignItems: "center", marginBottom: "15px", marginTop: "5px" },
+  questionCard: { borderRadius: "15px", padding: "clamp(15px, 4vw, 20px)", marginBottom: "15px", textAlign: "center" },
+  slangBadge: { fontSize: "13px", color: "#FF9800", marginBottom: "8px", fontWeight: "bold" },
+  letterBadge: { fontSize: "11px", color: "#666", marginBottom: "8px" },
+  questionText: { fontSize: "clamp(16px, 5vw, 20px)", fontWeight: "bold", lineHeight: 1.4 },
+  inputContainer: { textAlign: "center", display: "flex", flexDirection: "column", gap: "10px", marginBottom: "15px" },
+  input: { fontSize: "clamp(14px, 4vw, 16px)", padding: "12px 15px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", width: "100%", boxSizing: "border-box" },
+  buttonGroupRow: { display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" },
+  answerButton: { fontSize: "clamp(14px, 4vw, 16px)", padding: "12px 20px", cursor: "pointer", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", flex: 1 },
+  pasapalabraButton: { fontSize: "clamp(14px, 4vw, 16px)", padding: "12px 20px", cursor: "pointer", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", fontWeight: "bold", flex: 1 },
+  message: { marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontSize: "clamp(13px, 4vw, 15px)", fontWeight: "bold" },
+  legend: { display: "flex", justifyContent: "center", gap: "clamp(10px, 4vw, 20px)", fontSize: "clamp(9px, 3vw, 11px)", flexWrap: "wrap", borderTop: "1px solid #ddd", paddingTop: "15px", marginTop: "5px" },
+  legendDotGrey: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px" },
+  legendDotGreen: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "4px" },
+  legendDotRed: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "4px" },
+  legendDotYellow: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "4px" },
+  legendDotOrange: { display: "inline-block", width: "14px", height: "14px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px", border: "2px solid #FF9800" },
+  summaryContainer: { fontFamily: "system-ui, -apple-system, sans-serif", padding: "20px", maxWidth: "700px", margin: "0 auto", minHeight: "100vh", display: "flex", flexDirection: "column", justifyContent: "center" },
+  summaryTitle: { fontSize: "clamp(24px, 6vw, 36px)", textAlign: "center", marginBottom: "10px" },
+  winnerText: { fontSize: "clamp(20px, 5vw, 28px)", textAlign: "center", marginBottom: "30px" },
+  summaryTable: { overflowX: "auto", marginBottom: "30px" },
+  table: { width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" },
+  th: { padding: "12px", backgroundColor: "#2196F3", color: "white", fontWeight: "bold", border: "1px solid #ddd" },
+  td: { padding: "12px", textAlign: "center", border: "1px solid #ddd" },
+  winnerRow: { backgroundColor: "#FFF9C4" },
+  summaryDetails: { backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", marginBottom: "30px" },
+  playAgainButton: { padding: "15px 30px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold", marginBottom: "20px" }
 };
