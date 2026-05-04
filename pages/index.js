@@ -11,6 +11,7 @@ const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 const QUESTION_TIME = 30;
 const MIN_SLANG_PER_ROSCO = 2;
 const MAX_SLANG_PER_ROSCO = 3;
+const VERSION = "2.0.2";
 
 /* =========================
    HELPERS
@@ -220,11 +221,21 @@ export default function Game() {
   const [game, setGame] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [gameFinished, setGameFinished] = useState(false);
+  const [showVersion, setShowVersion] = useState(true);
   
   const correctSound = useRef(null);
   const wrongSound = useRef(null);
   const welcomeSound = useRef(null);
   const timerInterval = useRef(null);
+
+  // Clear cache function for troubleshooting
+  const clearCacheAndReload = () => {
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
+    }
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -235,6 +246,9 @@ export default function Game() {
     if (correctSound.current) correctSound.current.volume = 1.0;
     if (wrongSound.current) wrongSound.current.volume = 1.0;
     if (welcomeSound.current) welcomeSound.current.volume = 1.0;
+    
+    // Hide version banner after 5 seconds
+    setTimeout(() => setShowVersion(false), 5000);
   }, []);
 
   useEffect(() => {
@@ -706,7 +720,6 @@ export default function Game() {
 
   const endGame = () => {
     if (!game) return;
-    
     setGameFinished(true);
   };
 
@@ -727,10 +740,23 @@ export default function Game() {
         <Head>
           <title>Pasapalabra Venezuela</title>
           <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+          <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+          <meta httpEquiv="Pragma" content="no-cache" />
+          <meta httpEquiv="Expires" content="0" />
         </Head>
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
+          {/* Version Banner */}
+          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>
+            ✅ Versión {VERSION} - Cargada: {new Date().toLocaleTimeString()}
+          </div>
+          
           <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>🎙️ Pasapalabra Venezuela 🎙️</h1>
           <p style={{ marginBottom: "30px", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
+
+          {/* Clear Cache Button */}
+          <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+            🗑️ Clear Cache & Force Reload
+          </button>
 
           <div style={{ marginBottom: "30px" }}>
             <h3>👥 Jugadores</h3>
@@ -796,7 +822,13 @@ export default function Game() {
     
     return (
       <>
-        <Head><title>Resultados</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
+        <Head>
+          <title>Resultados</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+          <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+          <meta httpEquiv="Pragma" content="no-cache" />
+          <meta httpEquiv="Expires" content="0" />
+        </Head>
         <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
           <h1 style={{ textAlign: "center" }}>🏆 RESULTADOS FINALES 🏆</h1>
           {winner === 1 && <h2 style={{ textAlign: "center", color: "#2196F3" }}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
@@ -808,7 +840,7 @@ export default function Game() {
               <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th></tr></thead>
               <tbody>
                 <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td></tr>
-                {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td></tr>)}
+                {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td><td>)}
               </tbody>
             </table>
           </div>
@@ -843,8 +875,19 @@ export default function Game() {
       <Head>
         <title>Pasapalabra - Jugador {game.currentPlayer}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
       </Head>
       <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto" }}>
+        
+        {/* Version Banner - Shows on game screen too */}
+        {showVersion && (
+          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "6px", borderRadius: "6px", marginBottom: "10px", textAlign: "center", fontSize: "11px" }}>
+            ✅ Versión {VERSION} - Cargada: {new Date().toLocaleTimeString()}
+          </div>
+        )}
+        
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px" }}>
           <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
@@ -913,6 +956,13 @@ export default function Game() {
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "5px" }}></span> Incorrecto</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "5px" }}></span> Pasapalabra</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px", border: "2px solid #FF9800" }}></span> Letra actual</div>
+        </div>
+        
+        {/* Clear Cache Link at bottom */}
+        <div style={{ textAlign: "center", marginTop: "15px" }}>
+          <button onClick={clearCacheAndReload} style={{ padding: "6px 12px", fontSize: "10px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>
+            🗑️ Force Reload (clear cache)
+          </button>
         </div>
       </div>
     </>
