@@ -187,7 +187,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
               />
               <text
                 x={x}
-                cy={y}
+                y={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={getTextColor(item)}
@@ -221,11 +221,24 @@ export default function Game() {
   const [showAnswer, setShowAnswer] = useState(false);
   const [gameFinished, setGameFinished] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [forceRender, setForceRender] = useState(0);
   
   const correctSound = useRef(null);
   const wrongSound = useRef(null);
   const welcomeSound = useRef(null);
   const timerInterval = useRef(null);
+
+  // Force clear cache function
+  const clearCacheAndReset = () => {
+    if (typeof window !== "undefined") {
+      // Clear localStorage
+      localStorage.clear();
+      // Clear sessionStorage
+      sessionStorage.clear();
+      // Force reload with cache bust
+      window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
+    }
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -711,9 +724,6 @@ export default function Game() {
       setInput("");
       setMessage({ text: `Letra ${letter}`, type: "info" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1000);
-    } else if (letterIndex !== -1 && player.rosco[letterIndex].passed) {
-      setMessage({ text: `Letra ${letter} pasada - 2da ronda`, type: "info" });
-      setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     }
   };
 
@@ -766,6 +776,11 @@ export default function Game() {
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
           <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>🎙️ Pasapalabra Venezuela 🎙️</h1>
           <p style={{ marginBottom: "30px", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
+
+          {/* Clear Cache Button */}
+          <button onClick={clearCacheAndReset} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
+            🗑️ Clear Cache & Reload
+          </button>
 
           <div style={{ marginBottom: "30px" }}>
             <h3>👥 Jugadores</h3>
@@ -856,7 +871,11 @@ export default function Game() {
           
           <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ width: "100%", padding: "15px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🔄 Jugar de Nuevo</button>
           
-          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
+          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center" }}>
+            <button onClick={clearCacheAndReset} style={{ padding: "8px 16px", fontSize: "12px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>🗑️ Clear Cache & Reload</button>
+          </div>
+          
+          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
             <p>Designed by Armando Guillen - Copyright 2026</p>
             <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
@@ -910,7 +929,7 @@ export default function Game() {
           <div style={{ fontSize: "18px", fontWeight: "bold" }}>{currentItem.question}</div>
         </div>
 
-        {/* Input and Buttons - FORCED TO SHOW ON ALL DEVICES */}
+        {/* Input and Buttons - FORCED VISIBLE ON ALL DEVICES */}
         {!showAnswer && (
           <div style={{ marginBottom: "15px" }}>
             <input
@@ -920,9 +939,14 @@ export default function Game() {
               placeholder="Escribe tu respuesta..."
               autoFocus
             />
+            {/* BUTTONS - Explicitly styled to ALWAYS show */}
             <div style={{ display: "flex", gap: "10px", flexDirection: "row" }}>
-              <button onClick={answer} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>📝 Responder</button>
-              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>⏭️ PASAPALABRA</button>
+              <button onClick={answer} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>
+                📝 Responder
+              </button>
+              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>
+                ⏭️ PASAPALABRA
+              </button>
             </div>
           </div>
         )}
@@ -935,12 +959,20 @@ export default function Game() {
         )}
 
         {/* Legend */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "12px", fontSize: "10px", borderTop: "1px solid #ddd", paddingTop: "12px" }}>
+        <div style={{ display: "flex", justifyContent: "center", gap: "12px", fontSize: "10px", borderTop: "1px solid #ddd", paddingTop: "12px", flexWrap: "wrap" }}>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px" }}></span> Pendiente</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "4px" }}></span> Correcto</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "4px" }}></span> Incorrecto</div>
           <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "4px" }}></span> Pasapalabra</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
+        
+        {/* Debug info - shows on mobile */}
+        {isMobile && (
+          <div style={{ marginTop: "10px", padding: "8px", backgroundColor: "#f0f0f0", borderRadius: "5px", fontSize: "10px", textAlign: "center", color: "#666" }}>
+            Pasapalabra button should be visible above ↑
+          </div>
+        )}
       </div>
     </>
   );
