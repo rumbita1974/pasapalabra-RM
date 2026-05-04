@@ -137,12 +137,12 @@ function resetPassedLetters(rosco) {
    CIRCULAR ROSCO COMPONENT
 ========================= */
 
-function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
-  const size = isMobile ? Math.min(320, window.innerWidth - 40) : 440;
+function CircularRosco({ letters, currentLetter, onLetterClick }) {
+  const size = 400;
   const center = size / 2;
-  const radius = isMobile ? 130 : 190;
-  const buttonRadius = isMobile ? 20 : 28;
-  const fontSize = isMobile ? 12 : 18;
+  const radius = 170;
+  const buttonRadius = 26;
+  const fontSize = 16;
   
   const getAngle = (index) => {
     return (index * 360 / letters.length) - 90;
@@ -183,7 +183,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, isMobile }) {
                 stroke={isCurrent ? "#FF9800" : "#999"}
                 strokeWidth={isCurrent ? 3 : 1.5}
                 onClick={() => item.status === "pending" && !item.passed && onLetterClick(item.letter)}
-                style={{ cursor: item.status === "pending" && !item.passed ? "pointer" : "not-allowed", transition: "all 0.3s" }}
+                style={{ cursor: item.status === "pending" && !item.passed ? "pointer" : "not-allowed" }}
               />
               <text
                 x={x}
@@ -220,34 +220,11 @@ export default function Game() {
   const [game, setGame] = useState(null);
   const [showAnswer, setShowAnswer] = useState(false);
   const [gameFinished, setGameFinished] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  const [forceRender, setForceRender] = useState(0);
   
   const correctSound = useRef(null);
   const wrongSound = useRef(null);
   const welcomeSound = useRef(null);
   const timerInterval = useRef(null);
-
-  // Force clear cache function
-  const clearCacheAndReset = () => {
-    if (typeof window !== "undefined") {
-      // Clear localStorage
-      localStorage.clear();
-      // Clear sessionStorage
-      sessionStorage.clear();
-      // Force reload with cache bust
-      window.location.href = window.location.href.split('?')[0] + '?t=' + Date.now();
-    }
-  };
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -670,7 +647,7 @@ export default function Game() {
       }
     }
     
-    setMessage({ text: `⏭️ PASAPALABRA! ${playersCount === 2 ? `Turno J${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
+    setMessage({ text: `⏭️ PASAPALABRA! ${playersCount === 2 ? `Turno Jugador ${currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, type: "info" });
     setTimeout(() => setMessage({ text: "", type: "" }), 1500);
     
     setTime(QUESTION_TIME);
@@ -730,29 +707,7 @@ export default function Game() {
   const endGame = () => {
     if (!game) return;
     
-    const p1Correct = game.players[1].rosco.filter(r => r.status === "correct").length;
-    const p1Wrong = game.players[1].rosco.filter(r => r.status === "wrong").length;
-    const p1Passed = game.players[1].rosco.filter(r => r.passed).length;
-    const p1Score = p1Correct;
-    
-    let p2Correct = 0, p2Wrong = 0, p2Passed = 0, p2Score = 0;
-    let twoPlayer = false;
-    
-    if (game.players[2]) {
-      twoPlayer = true;
-      p2Correct = game.players[2].rosco.filter(r => r.status === "correct").length;
-      p2Wrong = game.players[2].rosco.filter(r => r.status === "wrong").length;
-      p2Passed = game.players[2].rosco.filter(r => r.passed).length;
-      p2Score = p2Correct;
-    }
-    
-    const winner = p1Score > p2Score ? 1 : (p2Score > p1Score ? 2 : 0);
-    
     setGameFinished(true);
-    setMessage({ 
-      text: winner === 1 ? "🏆 JUGADOR 1 GANA 🏆" : winner === 2 ? "🏆 JUGADOR 2 GANA 🏆" : "🤝 EMPATE 🤝", 
-      type: "gameover" 
-    });
   };
 
   useEffect(() => {
@@ -776,11 +731,6 @@ export default function Game() {
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
           <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>🎙️ Pasapalabra Venezuela 🎙️</h1>
           <p style={{ marginBottom: "30px", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
-
-          {/* Clear Cache Button */}
-          <button onClick={clearCacheAndReset} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
-            🗑️ Clear Cache & Reload
-          </button>
 
           <div style={{ marginBottom: "30px" }}>
             <h3>👥 Jugadores</h3>
@@ -848,14 +798,14 @@ export default function Game() {
       <>
         <Head><title>Resultados</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
         <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
-          <h1 style={{ textAlign: "center" }}>🏆 RESULTADOS 🏆</h1>
+          <h1 style={{ textAlign: "center" }}>🏆 RESULTADOS FINALES 🏆</h1>
           {winner === 1 && <h2 style={{ textAlign: "center", color: "#2196F3" }}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
           {winner === 2 && <h2 style={{ textAlign: "center", color: "#FF9800" }}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
           {winner === 0 && <h2 style={{ textAlign: "center" }}>🤝 ¡EMPATE! 🤝</h2>}
           
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntos</th></tr></thead>
+              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th></tr></thead>
               <tbody>
                 <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td></tr>
                 {twoPlayer && (<tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td></tr>)}
@@ -864,18 +814,16 @@ export default function Game() {
           </div>
           
           <div style={{ backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", margin: "30px 0" }}>
-            <h3>📋 Resumen:</h3>
-            <p>Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos, {p1Passed} pasadas</p>
-            {twoPlayer && <p>Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
+            <h3>📋 Resumen del Juego:</h3>
+            <p>🎯 Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos, {p1Passed} pasadas</p>
+            {twoPlayer && <p>🎯 Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
+            <p>🇻🇪 Cada rosco incluyó 2-3 palabras del argot venezolano</p>
+            <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
           </div>
           
           <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ width: "100%", padding: "15px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🔄 Jugar de Nuevo</button>
           
-          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center" }}>
-            <button onClick={clearCacheAndReset} style={{ padding: "8px 16px", fontSize: "12px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>🗑️ Clear Cache & Reload</button>
-          </div>
-          
-          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
+          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
             <p>Designed by Armando Guillen - Copyright 2026</p>
             <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
@@ -893,43 +841,44 @@ export default function Game() {
   return (
     <>
       <Head>
-        <title>Pasapalabra - J{game.currentPlayer}</title>
+        <title>Pasapalabra - Jugador {game.currentPlayer}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
       </Head>
       <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto" }}>
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px" }}>
           <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
-            <div style={{ fontWeight: "bold", fontSize: "12px" }}>J1</div>
-            <div style={{ fontSize: "24px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
-            <div style={{ fontSize: "9px" }}>✅{game.players[1].rosco.filter(r => r.status === "correct").length} ❌{game.players[1].rosco.filter(r => r.status === "wrong").length}</div>
+            <div style={{ fontWeight: "bold", fontSize: "14px" }}>Jugador 1</div>
+            <div style={{ fontSize: "28px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
+            <div style={{ fontSize: "10px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed).length}</div>
           </div>
           
           <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: "32px", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>{time}s</div>
-            <div style={{ fontSize: "10px", fontWeight: "bold" }}>R{game.round} J{game.currentPlayer}</div>
+            <div style={{ fontSize: "36px", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>{time}s</div>
+            <div style={{ fontSize: "12px", fontWeight: "bold" }}>Ronda {game.round}</div>
+            <div style={{ fontSize: "11px", color: "#666" }}>Turno Jugador {game.currentPlayer}</div>
           </div>
           
           {game.players[2] && (
             <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
-              <div style={{ fontWeight: "bold", fontSize: "12px" }}>J2</div>
-              <div style={{ fontSize: "24px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={{ fontSize: "9px" }}>✅{game.players[2].rosco.filter(r => r.status === "correct").length} ❌{game.players[2].rosco.filter(r => r.status === "wrong").length}</div>
+              <div style={{ fontWeight: "bold", fontSize: "14px" }}>Jugador 2</div>
+              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
+              <div style={{ fontSize: "10px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed).length}</div>
             </div>
           )}
         </div>
 
         {/* Circular Rosco */}
-        <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} isMobile={isMobile} />
+        <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} />
 
         {/* Question Card */}
         <div style={{ borderRadius: "15px", padding: "20px", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
-          {currentItem.isSlang && <div style={{ fontSize: "13px", color: "#FF9800", fontWeight: "bold" }}>🇻🇪 Palabra Venezolana</div>}
-          <div style={{ fontSize: "12px", color: "#666", marginBottom: "5px" }}>Letra {currentItem.letter} ({remainingCount} rest, {passedCount} pasadas)</div>
-          <div style={{ fontSize: "18px", fontWeight: "bold" }}>{currentItem.question}</div>
+          {currentItem.isSlang && <div style={{ fontSize: "13px", color: "#FF9800", fontWeight: "bold", marginBottom: "5px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
+          <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Letra {currentItem.letter} | Restantes: {remainingCount} | Pasadas: {passedCount}</div>
+          <div style={{ fontSize: "18px", fontWeight: "bold", lineHeight: 1.4 }}>{currentItem.question}</div>
         </div>
 
-        {/* Input and Buttons - FORCED VISIBLE ON ALL DEVICES */}
+        {/* Input and Buttons */}
         {!showAnswer && (
           <div style={{ marginBottom: "15px" }}>
             <input
@@ -939,7 +888,6 @@ export default function Game() {
               placeholder="Escribe tu respuesta..."
               autoFocus
             />
-            {/* BUTTONS - Explicitly styled to ALWAYS show */}
             <div style={{ display: "flex", gap: "10px", flexDirection: "row" }}>
               <button onClick={answer} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>
                 📝 Responder
@@ -959,20 +907,13 @@ export default function Game() {
         )}
 
         {/* Legend */}
-        <div style={{ display: "flex", justifyContent: "center", gap: "12px", fontSize: "10px", borderTop: "1px solid #ddd", paddingTop: "12px", flexWrap: "wrap" }}>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px" }}></span> Pendiente</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "4px" }}></span> Correcto</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "4px" }}></span> Incorrecto</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "4px" }}></span> Pasapalabra</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "4px", border: "2px solid #FF9800" }}></span> Actual</div>
+        <div style={{ display: "flex", justifyContent: "center", gap: "15px", fontSize: "11px", borderTop: "1px solid #ddd", paddingTop: "12px", flexWrap: "wrap" }}>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px" }}></span> Sin responder</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "5px" }}></span> Correcto</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "5px" }}></span> Incorrecto</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "5px" }}></span> Pasapalabra</div>
+          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px", border: "2px solid #FF9800" }}></span> Letra actual</div>
         </div>
-        
-        {/* Debug info - shows on mobile */}
-        {isMobile && (
-          <div style={{ marginTop: "10px", padding: "8px", backgroundColor: "#f0f0f0", borderRadius: "5px", fontSize: "10px", textAlign: "center", color: "#666" }}>
-            Pasapalabra button should be visible above ↑
-          </div>
-        )}
       </div>
     </>
   );
