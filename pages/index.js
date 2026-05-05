@@ -11,7 +11,7 @@ const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 const QUESTION_TIME = 30;
 const MIN_SLANG_PER_ROSCO = 2;
 const MAX_SLANG_PER_ROSCO = 3;
-const VERSION = "2.0.3";
+const VERSION = "2.0.4";
 
 /* =========================
    HELPERS
@@ -135,15 +135,15 @@ function resetPassedLetters(rosco) {
 }
 
 /* =========================
-   CIRCULAR ROSCO COMPONENT
+   CIRCULAR ROSCO COMPONENT WITH CENTER TIMER
 ========================= */
 
-function CircularRosco({ letters, currentLetter, onLetterClick }) {
-  const size = 400;
+function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
+  const size = 320;
   const center = size / 2;
-  const radius = 170;
-  const buttonRadius = 26;
-  const fontSize = 16;
+  const radius = 140;
+  const buttonRadius = 22;
+  const fontSize = 12;
   
   const getAngle = (index) => {
     return (index * 360 / letters.length) - 90;
@@ -167,6 +167,31 @@ function CircularRosco({ letters, currentLetter, onLetterClick }) {
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", margin: "10px 0" }}>
       <svg width={size} height={size} style={{ display: "block", maxWidth: "100%", height: "auto" }}>
         <circle cx={center} cy={center} r={radius} fill="#f5f5f5" stroke="#ccc" strokeWidth="2"/>
+        
+        {/* Timer in the center of the rosco */}
+        <circle cx={center} cy={center} r={45} fill="white" stroke="#2196F3" strokeWidth="3"/>
+        <text
+          x={center}
+          y={center - 5}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={time <= 10 ? "#f44336" : "#2196F3"}
+          fontSize="28"
+          fontWeight="bold"
+        >
+          {time}
+        </text>
+        <text
+          x={center}
+          y={center + 20}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill="#666"
+          fontSize="10"
+        >
+          seg
+        </text>
+        
         {letters.map((item, index) => {
           const angle = getAngle(index);
           const radian = (angle * Math.PI) / 180;
@@ -188,7 +213,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick }) {
               />
               <text
                 x={x}
-                y={y}
+                cy={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={getTextColor(item)}
@@ -893,58 +918,57 @@ export default function Game() {
         <meta httpEquiv="Pragma" content="no-cache" />
         <meta httpEquiv="Expires" content="0" />
       </Head>
-      <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "700px", margin: "0 auto" }}>
+      <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "500px", margin: "0 auto" }}>
         
         {showVersion && (
-          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "6px", borderRadius: "6px", marginBottom: "10px", textAlign: "center", fontSize: "11px" }}>
+          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "6px", borderRadius: "6px", marginBottom: "10px", textAlign: "center", fontSize: "10px" }}>
             ✅ Versión {VERSION} - Cargada: {new Date().toLocaleTimeString()}
           </div>
         )}
         
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "15px" }}>
-          <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
-            <div style={{ fontWeight: "bold", fontSize: "14px" }}>Jugador 1</div>
-            <div style={{ fontSize: "28px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
-            <div style={{ fontSize: "10px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed).length}</div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+          <div style={{ flex: 1, textAlign: "center", padding: "6px", borderRadius: "8px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
+            <div style={{ fontWeight: "bold", fontSize: "12px" }}>Jugador 1</div>
+            <div style={{ fontSize: "22px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
+            <div style={{ fontSize: "8px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed).length}</div>
           </div>
           
           <div style={{ flex: 1, textAlign: "center" }}>
-            <div style={{ fontSize: "36px", fontWeight: "bold", color: time <= 10 ? "#f44336" : "#333" }}>{time}s</div>
-            <div style={{ fontSize: "12px", fontWeight: "bold" }}>Ronda {game.round}</div>
-            <div style={{ fontSize: "11px", color: "#666" }}>Turno Jugador {game.currentPlayer}</div>
+            <div style={{ fontSize: "11px", color: "#666" }}>Ronda {game.round}</div>
+            <div style={{ fontSize: "11px", color: "#2196F3", fontWeight: "bold" }}>Turno J{game.currentPlayer}</div>
           </div>
           
           {game.players[2] && (
-            <div style={{ flex: 1, textAlign: "center", padding: "8px", borderRadius: "10px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
-              <div style={{ fontWeight: "bold", fontSize: "14px" }}>Jugador 2</div>
-              <div style={{ fontSize: "28px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={{ fontSize: "10px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed).length}</div>
+            <div style={{ flex: 1, textAlign: "center", padding: "6px", borderRadius: "8px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
+              <div style={{ fontWeight: "bold", fontSize: "12px" }}>Jugador 2</div>
+              <div style={{ fontSize: "22px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
+              <div style={{ fontSize: "8px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed).length}</div>
             </div>
           )}
         </div>
 
-        <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} />
+        <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} time={time} />
 
-        <div style={{ borderRadius: "15px", padding: "20px", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
-          {currentItem.isSlang && <div style={{ fontSize: "13px", color: "#FF9800", fontWeight: "bold", marginBottom: "5px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
-          <div style={{ fontSize: "14px", color: "#666", marginBottom: "8px" }}>Letra {currentItem.letter} | Restantes: {remainingCount} | Pasadas: {passedCount}</div>
-          <div style={{ fontSize: "18px", fontWeight: "bold", lineHeight: 1.4 }}>{currentItem.question}</div>
+        <div style={{ borderRadius: "12px", padding: "15px", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
+          {currentItem.isSlang && <div style={{ fontSize: "11px", color: "#FF9800", fontWeight: "bold", marginBottom: "4px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
+          <div style={{ fontSize: "11px", color: "#666", marginBottom: "5px" }}>Letra {currentItem.letter} | Restantes: {remainingCount} | Pasadas: {passedCount}</div>
+          <div style={{ fontSize: "16px", fontWeight: "bold", lineHeight: 1.3 }}>{currentItem.question}</div>
         </div>
 
         {!showAnswer && (
           <div style={{ marginBottom: "15px" }}>
             <input
-              style={{ width: "100%", padding: "15px", fontSize: "16px", borderRadius: "10px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "10px" }}
+              style={{ width: "100%", padding: "12px", fontSize: "14px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "8px" }}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Escribe tu respuesta..."
               autoFocus
             />
-            <div style={{ display: "flex", gap: "10px", flexDirection: "row" }}>
-              <button onClick={answer} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "10px", cursor: "pointer" }}>
+            <div style={{ display: "flex", gap: "8px", flexDirection: "row" }}>
+              <button onClick={answer} style={{ flex: 1, padding: "12px", fontSize: "14px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
                 📝 Responder
               </button>
-              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "15px", fontSize: "16px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "10px", cursor: "pointer" }}>
+              <button onClick={handlePasapalabra} style={{ flex: 1, padding: "12px", fontSize: "14px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "8px", cursor: "pointer" }}>
                 ⏭️ PASAPALABRA
               </button>
             </div>
@@ -952,22 +976,22 @@ export default function Game() {
         )}
 
         {message.text && (
-          <div style={{ marginBottom: "15px", padding: "12px", borderRadius: "10px", textAlign: "center", fontWeight: "bold", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
+          <div style={{ marginBottom: "12px", padding: "10px", borderRadius: "8px", textAlign: "center", fontWeight: "bold", fontSize: "12px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
             {message.text}
           </div>
         )}
 
-        <div style={{ display: "flex", justifyContent: "center", gap: "15px", fontSize: "11px", borderTop: "1px solid #ddd", paddingTop: "12px", flexWrap: "wrap" }}>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px" }}></span> Sin responder</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "5px" }}></span> Correcto</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "5px" }}></span> Incorrecto</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "5px" }}></span> Pasapalabra</div>
-          <div><span style={{ display: "inline-block", width: "12px", height: "12px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "5px", border: "2px solid #FF9800" }}></span> Letra actual</div>
+        <div style={{ display: "flex", justifyContent: "center", gap: "10px", fontSize: "9px", borderTop: "1px solid #ddd", paddingTop: "10px", flexWrap: "wrap" }}>
+          <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "3px" }}></span> Sin responder</div>
+          <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "3px" }}></span> Correcto</div>
+          <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "3px" }}></span> Incorrecto</div>
+          <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "3px" }}></span> Pasapalabra</div>
+          <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "3px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
         
-        <div style={{ textAlign: "center", marginTop: "15px" }}>
-          <button onClick={clearCacheAndReload} style={{ padding: "6px 12px", fontSize: "10px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>
-            🗑️ Force Reload (clear cache)
+        <div style={{ textAlign: "center", marginTop: "10px" }}>
+          <button onClick={clearCacheAndReload} style={{ padding: "4px 8px", fontSize: "9px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+            🗑️ Force Reload
           </button>
         </div>
       </div>
