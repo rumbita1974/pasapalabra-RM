@@ -11,7 +11,7 @@ const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 const QUESTION_TIME = 30;
 const MIN_SLANG_PER_ROSCO = 2;
 const MAX_SLANG_PER_ROSCO = 3;
-const VERSION = "2.0.4";
+const VERSION = "2.0.5";
 
 /* =========================
    HELPERS
@@ -139,11 +139,11 @@ function resetPassedLetters(rosco) {
 ========================= */
 
 function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
-  const size = 320;
+  const size = 340;
   const center = size / 2;
-  const radius = 140;
-  const buttonRadius = 22;
-  const fontSize = 12;
+  const radius = 145;
+  const buttonRadius = 24;
+  const fontSize = 14;
   
   const getAngle = (index) => {
     return (index * 360 / letters.length) - 90;
@@ -164,30 +164,29 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
   };
   
   return (
-    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", margin: "10px 0" }}>
+    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", margin: "5px 0" }}>
       <svg width={size} height={size} style={{ display: "block", maxWidth: "100%", height: "auto" }}>
         <circle cx={center} cy={center} r={radius} fill="#f5f5f5" stroke="#ccc" strokeWidth="2"/>
         
-        {/* Timer in the center of the rosco */}
-        <circle cx={center} cy={center} r={45} fill="white" stroke="#2196F3" strokeWidth="3"/>
+        <circle cx={center} cy={center} r={42} fill="white" stroke="#2196F3" strokeWidth="3"/>
         <text
           x={center}
-          y={center - 5}
+          y={center - 4}
           textAnchor="middle"
           dominantBaseline="middle"
           fill={time <= 10 ? "#f44336" : "#2196F3"}
-          fontSize="28"
+          fontSize={26}
           fontWeight="bold"
         >
           {time}
         </text>
         <text
           x={center}
-          y={center + 20}
+          y={center + 18}
           textAnchor="middle"
           dominantBaseline="middle"
           fill="#666"
-          fontSize="10"
+          fontSize={10}
         >
           seg
         </text>
@@ -213,7 +212,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
               />
               <text
                 x={x}
-                cy={y}
+                y={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={getTextColor(item)}
@@ -324,7 +323,7 @@ export default function Game() {
     setGameFinished(false);
     setTime(QUESTION_TIME);
     setInput("");
-    setMessage({ text: "¡Comienza el Jugador 1! Letra A - 30 segundos", type: "info" });
+    setMessage({ text: "¡Comienza el Jugador 1! Letra A", type: "info" });
     setShowAnswer(false);
     
     setTimeout(() => setMessage({ text: "", type: "" }), 2000);
@@ -769,7 +768,7 @@ export default function Game() {
         </Head>
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>
-            ✅ Versión {VERSION} - Cargada: {new Date().toLocaleTimeString()}
+            ✅ Versión {VERSION}
           </div>
           
           <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
@@ -921,19 +920,20 @@ export default function Game() {
       <div style={{ fontFamily: "system-ui", padding: "10px", maxWidth: "500px", margin: "0 auto" }}>
         
         {showVersion && (
-          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "6px", borderRadius: "6px", marginBottom: "10px", textAlign: "center", fontSize: "10px" }}>
-            ✅ Versión {VERSION} - Cargada: {new Date().toLocaleTimeString()}
+          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "4px 8px", borderRadius: "5px", marginBottom: "8px", textAlign: "center", fontSize: "9px" }}>
+            ✅ Versión {VERSION}
           </div>
         )}
         
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "10px" }}>
+        {/* Player Score Cards - No overlapping text */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", marginBottom: "5px" }}>
           <div style={{ flex: 1, textAlign: "center", padding: "6px", borderRadius: "8px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
             <div style={{ fontWeight: "bold", fontSize: "12px" }}>Jugador 1</div>
             <div style={{ fontSize: "22px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
             <div style={{ fontSize: "8px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed).length}</div>
           </div>
           
-          <div style={{ flex: 1, textAlign: "center" }}>
+          <div style={{ flex: 1, textAlign: "center", padding: "4px" }}>
             <div style={{ fontSize: "11px", color: "#666" }}>Ronda {game.round}</div>
             <div style={{ fontSize: "11px", color: "#2196F3", fontWeight: "bold" }}>Turno J{game.currentPlayer}</div>
           </div>
@@ -947,16 +947,19 @@ export default function Game() {
           )}
         </div>
 
+        {/* Circular Rosco - Letters are clearly visible */}
         <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} time={time} />
 
-        <div style={{ borderRadius: "12px", padding: "15px", marginBottom: "15px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
+        {/* Question Card */}
+        <div style={{ borderRadius: "12px", padding: "12px", marginBottom: "12px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
           {currentItem.isSlang && <div style={{ fontSize: "11px", color: "#FF9800", fontWeight: "bold", marginBottom: "4px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
           <div style={{ fontSize: "11px", color: "#666", marginBottom: "5px" }}>Letra {currentItem.letter} | Restantes: {remainingCount} | Pasadas: {passedCount}</div>
-          <div style={{ fontSize: "16px", fontWeight: "bold", lineHeight: 1.3 }}>{currentItem.question}</div>
+          <div style={{ fontSize: "15px", fontWeight: "bold", lineHeight: 1.3 }}>{currentItem.question}</div>
         </div>
 
+        {/* Input and Buttons */}
         {!showAnswer && (
-          <div style={{ marginBottom: "15px" }}>
+          <div style={{ marginBottom: "12px" }}>
             <input
               style={{ width: "100%", padding: "12px", fontSize: "14px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "8px" }}
               value={input}
@@ -975,13 +978,15 @@ export default function Game() {
           </div>
         )}
 
+        {/* Message */}
         {message.text && (
-          <div style={{ marginBottom: "12px", padding: "10px", borderRadius: "8px", textAlign: "center", fontWeight: "bold", fontSize: "12px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
+          <div style={{ marginBottom: "10px", padding: "8px", borderRadius: "8px", textAlign: "center", fontWeight: "bold", fontSize: "11px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
             {message.text}
           </div>
         )}
 
-        <div style={{ display: "flex", justifyContent: "center", gap: "10px", fontSize: "9px", borderTop: "1px solid #ddd", paddingTop: "10px", flexWrap: "wrap" }}>
+        {/* Legend */}
+        <div style={{ display: "flex", justifyContent: "center", gap: "8px", fontSize: "8px", borderTop: "1px solid #ddd", paddingTop: "8px", flexWrap: "wrap" }}>
           <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "3px" }}></span> Sin responder</div>
           <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "3px" }}></span> Correcto</div>
           <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "3px" }}></span> Incorrecto</div>
@@ -989,8 +994,9 @@ export default function Game() {
           <div><span style={{ display: "inline-block", width: "10px", height: "10px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "3px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
         
-        <div style={{ textAlign: "center", marginTop: "10px" }}>
-          <button onClick={clearCacheAndReload} style={{ padding: "4px 8px", fontSize: "9px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>
+        {/* Force Reload Button */}
+        <div style={{ textAlign: "center", marginTop: "8px" }}>
+          <button onClick={clearCacheAndReload} style={{ padding: "3px 8px", fontSize: "8px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "4px", cursor: "pointer" }}>
             🗑️ Force Reload
           </button>
         </div>
