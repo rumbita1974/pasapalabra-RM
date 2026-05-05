@@ -9,7 +9,7 @@ import { ROSCO_DB } from "../data/rosco-db";
 
 const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 const QUESTION_TIME = 30;
-const VERSION = "2.1.0";
+const VERSION = "2.1.1";
 
 // Difficulty levels for Venezuelan slang
 const DIFFICULTY_SETTINGS = {
@@ -136,7 +136,7 @@ function getFirstPendingIndex(rosco) {
   return -1;
 }
 
-function getFirstPassedIndex(rosco) {
+function getFirstPassedLetterIndex(rosco) {
   for (let i = 0; i < rosco.length; i++) {
     if (rosco[i].passed === true && rosco[i].status === "pending") {
       return i;
@@ -150,10 +150,14 @@ function hasPassedLetters(rosco) {
 }
 
 function getSecondRoundRosco(originalRosco) {
-  // Keep all letters, but only passed ones become pending, others keep their status
+  // Start second round: Reset passed letters to pending, others become 'completed' so they are skipped
   return originalRosco.map(item => {
     if (item.passed === true && item.status === "pending") {
       return { ...item, passed: false };
+    }
+    // Mark all non-passed, already answered letters as 'completed' to skip them
+    if (item.status !== "pending") {
+      return { ...item, status: "completed" };
     }
     return item;
   });
@@ -179,13 +183,14 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
     switch(item.status) {
       case 'correct': return '#4CAF50';
       case 'wrong': return '#f44336';
+      case 'completed': return '#9E9E9E';
       default: return '#e0e0e0';
     }
   };
   
   const getTextColor = (item) => {
     if (item.passed) return "#333";
-    return item.status === 'pending' ? '#333' : '#fff';
+    return (item.status === 'pending' || item.status === 'completed') ? '#333' : '#fff';
   };
   
   return (
@@ -221,7 +226,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
           const radian = (angle * Math.PI) / 180;
           const x = center + radius * Math.cos(radian);
           const y = center + radius * Math.sin(radian);
-          const isCurrent = item.letter === currentLetter && item.status === "pending" && !item.passed;
+          const isCurrent = item.letter === currentLetter && (item.status === "pending" || item.passed);
           
           return (
             <g key={item.letter}>
@@ -237,7 +242,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
               />
               <text
                 x={x}
-                y={y}
+                cy={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
                 fill={getTextColor(item)}
@@ -445,25 +450,29 @@ export default function Game() {
     if (nextIndex === -1) {
       // No more pending unpassed letters
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
-        // Start second round - passed letters become pending again
+        // Start second round - ONLY passed letters become pending again
         const secondRoundRosco = getSecondRoundRosco(updatedRosco);
-        const firstPassedIndex = getFirstPassedIndex(secondRoundRosco);
+        const firstPassedIndex = getFirstPassedLetterIndex(updatedRosco); // Check original rosco for passed letters
         
-        setGame(prev => ({
-          ...prev,
-          round: 2,
-          players: {
-            ...prev.players,
-            [currentPlayer]: {
-              ...player,
-              rosco: secondRoundRosco,
-              currentIndex: firstPassedIndex !== -1 ? firstPassedIndex : 0,
-              score: player.score + 1
+        if (firstPassedIndex !== -1) {
+          setGame(prev => ({
+            ...prev,
+            round: 2,
+            players: {
+              ...prev.players,
+              [currentPlayer]: {
+                ...player,
+                rosco: secondRoundRosco,
+                currentIndex: firstPassedIndex,
+                score: player.score + 1
+              }
             }
-          }
-        }));
-        
-        showMessageWithDuration("🔄 ¡Segunda ronda! Letras pasadas", "info", 3000);
+          }));
+          showMessageWithDuration("🔄 ¡Segunda ronda! Solo letras pasadas", "info", 3000);
+        } else {
+          // Should not happen, but fallback
+          endGame();
+        }
       } else {
         // Game completed
         setGame(prev => ({
@@ -550,7 +559,7 @@ export default function Game() {
       // No more pending letters
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
         const secondRoundRosco = getSecondRoundRosco(updatedRosco);
-        const firstPassedIndex = getFirstPassedIndex(secondRoundRosco);
+        const firstPassedIndex = getFirstPassedLetterIndex(updatedRosco);
         
         if (firstPassedIndex !== -1) {
           setGame(prev => ({
@@ -567,17 +576,6 @@ export default function Game() {
           }));
           showMessageWithDuration("🔄 ¡Segunda ronda! Letras pasadas", "info", 3000);
         } else {
-          setGame(prev => ({
-            ...prev,
-            players: {
-              ...prev.players,
-              [currentPlayer]: {
-                ...player,
-                rosco: secondRoundRosco,
-                completed: true
-              }
-            }
-          }));
           endGame();
         }
       } else {
@@ -744,9 +742,15 @@ export default function Game() {
     const player = game.players[game.currentPlayer];
     const currentItem = player.rosco[player.currentIndex];
     
-    if (!currentItem || currentItem.status !== "pending" || currentItem.passed) {
+    if (!currentItem || currentItem.status !== "pending") {
       showMessageWithDuration("⚠️ Esta letra no está disponible", "error", 1500);
       return;
+    }
+
+    // check for passed flag just in case, though status pending should be enough
+    if (currentItem.passed) {
+        showMessageWithDuration("⚠️ Esta letra fue pasada, se intentará en segunda ronda", "error", 1500);
+        return;
     }
 
     const isCorrect = levenshtein.get(input.toLowerCase(), currentItem.answer.toLowerCase()) <= 2;
@@ -968,6 +972,7 @@ export default function Game() {
 
   const player = game.players[game.currentPlayer];
   const currentItem = player.rosco[player.currentIndex];
+  // Correctly calculate remaining and passed count for the display
   const remainingCount = player.rosco.filter(r => r.status === "pending" && !r.passed).length;
   const passedCount = player.rosco.filter(r => r.passed === true && r.status === "pending").length;
   const slangCount = player.rosco.filter(r => r.isSlang).length;
@@ -994,7 +999,7 @@ export default function Game() {
           <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
             <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 1</div>
             <div style={{ fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
-            <div style={{ fontSize: "7px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
+            <div style={{ fontSize: "7px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed === true && (r.status === "pending" || r.status === "correct" || r.status === "wrong")).length}</div>
           </div>
           
           <div style={{ flex: 1, textAlign: "center", padding: "3px" }}>
@@ -1006,7 +1011,7 @@ export default function Game() {
             <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
               <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 2</div>
               <div style={{ fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={{ fontSize: "7px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
+              <div style={{ fontSize: "7px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed === true && (r.status === "pending" || r.status === "correct" || r.status === "wrong")).length}</div>
             </div>
           )}
         </div>
@@ -1021,13 +1026,13 @@ export default function Game() {
           {currentItem.isSlang && <div style={{ fontSize: "10px", color: "#FF9800", fontWeight: "bold", marginBottom: "3px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
           <div style={{ fontSize: "10px", color: "#666", marginBottom: "4px" }}>
             Letra {currentItem.letter} | 
-            {game.round === 1 ? ` Restantes: ${remainingCount} | Pasadas: ${passedCount}` : ` Segunda ronda - ${remainingCount} letras por resolver`}
+            {game.round === 1 ? ` Restantes: ${remainingCount} | Pasadas: ${passedCount}` : ` Segunda ronda - ${remainingCount} letra(s) pendiente(s)`}
           </div>
           <div style={{ fontSize: "14px", fontWeight: "bold", lineHeight: 1.3 }}>{currentItem.question}</div>
         </div>
 
         {/* Input and Buttons */}
-        {!showAnswer && currentItem.status === "pending" && !currentItem.passed && (
+        {!showAnswer && (currentItem.status === "pending" || (game.round === 2 && currentItem.status === "pending")) && (
           <div style={{ marginBottom: "10px" }}>
             <input
               style={{ width: "100%", padding: "10px", fontSize: "13px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "6px" }}
@@ -1044,12 +1049,6 @@ export default function Game() {
                 ⏭️ PASAPALABRA
               </button>
             </div>
-          </div>
-        )}
-
-        {!showAnswer && (currentItem.status !== "pending" || currentItem.passed) && game.round === 2 && (
-          <div style={{ marginBottom: "10px", padding: "10px", textAlign: "center", backgroundColor: "#FFF3E0", borderRadius: "8px", fontSize: "12px" }}>
-            ⏭️ Segunda ronda - Intenta esta letra
           </div>
         )}
 
