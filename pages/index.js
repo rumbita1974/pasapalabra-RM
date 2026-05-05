@@ -9,7 +9,7 @@ import { ROSCO_DB } from "../data/rosco-db";
 
 const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
 const QUESTION_TIME = 30;
-const VERSION = "2.0.6";
+const VERSION = "2.0.7";
 
 // Difficulty levels for Venezuelan slang
 const DIFFICULTY_SETTINGS = {
@@ -115,14 +115,32 @@ function buildRosco(difficulty, seedOffset = 0) {
 
 function getNextPendingIndex(rosco, currentIndex) {
   for (let i = currentIndex + 1; i < rosco.length; i++) {
-    if (rosco[i].status === "pending") return i;
+    if (rosco[i].status === "pending" && !rosco[i].passed) {
+      return i;
+    }
+  }
+  for (let i = 0; i < currentIndex; i++) {
+    if (rosco[i].status === "pending" && !rosco[i].passed) {
+      return i;
+    }
   }
   return -1;
 }
 
 function getFirstPendingIndex(rosco) {
   for (let i = 0; i < rosco.length; i++) {
-    if (rosco[i].status === "pending") return i;
+    if (rosco[i].status === "pending" && !rosco[i].passed) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function getFirstPassedIndex(rosco) {
+  for (let i = 0; i < rosco.length; i++) {
+    if (rosco[i].passed === true) {
+      return i;
+    }
   }
   return -1;
 }
@@ -131,17 +149,17 @@ function hasPassedLetters(rosco) {
   return rosco.some(item => item.passed === true);
 }
 
-function resetPassedLetters(rosco) {
+function getPassedLettersOnly(rosco) {
   return rosco.map(item => {
     if (item.passed) {
-      return { ...item, passed: false };
+      return { ...item, status: "pending", passed: false };
     }
-    return item;
+    return { ...item, status: "completed", passed: false };
   });
 }
 
 /* =========================
-   CIRCULAR ROSCO COMPONENT - SHIFTED LEFT & SMALLER
+   CIRCULAR ROSCO COMPONENT
 ========================= */
 
 function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
@@ -160,12 +178,14 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
     switch(item.status) {
       case 'correct': return '#4CAF50';
       case 'wrong': return '#f44336';
+      case 'completed': return '#9E9E9E';
       default: return '#e0e0e0';
     }
   };
   
   const getTextColor = (item) => {
     if (item.passed) return "#333";
+    if (item.status === 'completed') return "#fff";
     return item.status === 'pending' ? '#333' : '#fff';
   };
   
@@ -174,7 +194,6 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
       <svg width={size} height={size} style={{ display: "block", maxWidth: "100%", height: "auto", marginLeft: "-10px" }}>
         <circle cx={center} cy={center} r={radius} fill="#f5f5f5" stroke="#ccc" strokeWidth="2"/>
         
-        {/* Timer centered in the middle */}
         <circle cx={center} cy={center} r={38} fill="white" stroke="#2196F3" strokeWidth="3"/>
         <text
           x={center}
@@ -203,7 +222,7 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
           const radian = (angle * Math.PI) / 180;
           const x = center + radius * Math.cos(radian);
           const y = center + radius * Math.sin(radian);
-          const isCurrent = item.letter === currentLetter;
+          const isCurrent = item.letter === currentLetter && item.status === "pending" && !item.passed;
           
           return (
             <g key={item.letter}>
@@ -348,7 +367,8 @@ export default function Game() {
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
-      status: "wrong"
+      status: "wrong",
+      passed: false
     };
     
     setShowAnswer(true);
@@ -421,9 +441,11 @@ export default function Game() {
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
+      // No more pending unpassed letters
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
-        const resetRosco = resetPassedLetters(updatedRosco);
-        const firstPending = getFirstPendingIndex(resetRosco);
+        // Start second round - ONLY passed letters
+        const secondRoundRosco = getPassedLettersOnly(updatedRosco);
+        const firstPassedIndex = getFirstPassedIndex(updatedRosco);
         
         setGame(prev => ({
           ...prev,
@@ -432,16 +454,17 @@ export default function Game() {
             ...prev.players,
             [currentPlayer]: {
               ...player,
-              rosco: resetRosco,
-              currentIndex: firstPending !== -1 ? firstPending : 0,
+              rosco: secondRoundRosco,
+              currentIndex: firstPassedIndex !== -1 ? firstPassedIndex : 0,
               score: player.score + 1
             }
           }
         }));
         
-        setMessage({ text: "🔄 ¡Segunda ronda! Letras pasadas", type: "info" });
+        setMessage({ text: "🔄 ¡Segunda ronda! Solo letras pasadas", type: "info" });
         setTimeout(() => setMessage({ text: "", type: "" }), 2000);
       } else {
+        // Game completed
         setGame(prev => ({
           ...prev,
           players: {
@@ -458,9 +481,9 @@ export default function Game() {
         setMessage({ text: `🎉 ¡Jugador ${currentPlayer} completó! 🎉`, type: "success" });
         
         const otherPlayer = currentPlayer === 1 ? 2 : 1;
-        if (playersCount === 1 || game.players[otherPlayer]?.completed) {
+        if (playersCount === 1 || (game.players[otherPlayer] && game.players[otherPlayer].completed)) {
           setTimeout(() => endGame(), 2000);
-        } else {
+        } else if (playersCount === 2) {
           setTimeout(() => {
             const nextPlayerData = game.players[otherPlayer];
             const nextIdx = getFirstPendingIndex(nextPlayerData.rosco);
@@ -479,6 +502,7 @@ export default function Game() {
         }
       }
     } else {
+      // Continue to next pending letter
       setGame(prev => ({
         ...prev,
         players: {
@@ -513,7 +537,8 @@ export default function Game() {
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
-      status: "wrong"
+      status: "wrong",
+      passed: false
     };
     
     setShowAnswer(true);
@@ -525,9 +550,10 @@ export default function Game() {
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
     if (nextIndex === -1) {
+      // No more pending letters
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
-        const resetRosco = resetPassedLetters(updatedRosco);
-        const firstPending = getFirstPendingIndex(resetRosco);
+        const secondRoundRosco = getPassedLettersOnly(updatedRosco);
+        const firstPassedIndex = getFirstPassedIndex(updatedRosco);
         
         setGame(prev => ({
           ...prev,
@@ -536,13 +562,13 @@ export default function Game() {
             ...prev.players,
             [currentPlayer]: {
               ...player,
-              rosco: resetRosco,
-              currentIndex: firstPending !== -1 ? firstPending : 0
+              rosco: secondRoundRosco,
+              currentIndex: firstPassedIndex !== -1 ? firstPassedIndex : 0
             }
           }
         }));
         
-        setMessage({ text: "🔄 ¡Segunda ronda!", type: "info" });
+        setMessage({ text: "🔄 ¡Segunda ronda! Solo letras pasadas", type: "info" });
         setTimeout(() => setMessage({ text: "", type: "" }), 2000);
       } else {
         setGame(prev => ({
@@ -558,9 +584,9 @@ export default function Game() {
         }));
         
         const otherPlayer = currentPlayer === 1 ? 2 : 1;
-        if (playersCount === 1 || game.players[otherPlayer]?.completed) {
+        if (playersCount === 1 || (game.players[otherPlayer] && game.players[otherPlayer].completed)) {
           setTimeout(() => endGame(), 2000);
-        } else {
+        } else if (playersCount === 2) {
           setTimeout(() => {
             const nextPlayerData = game.players[otherPlayer];
             const nextIdx = getFirstPendingIndex(nextPlayerData.rosco);
@@ -636,12 +662,14 @@ export default function Game() {
       return;
     }
     
+    // Mark as passed (yellow)
     const updatedRosco = [...player.rosco];
     updatedRosco[player.currentIndex] = {
       ...currentItem,
       passed: true
     };
     
+    // Find NEXT pending letter (not passed, not answered)
     let nextIndex = -1;
     for (let i = player.currentIndex + 1; i < updatedRosco.length; i++) {
       if (updatedRosco[i].status === "pending" && !updatedRosco[i].passed) {
@@ -658,6 +686,7 @@ export default function Game() {
       }
     }
     
+    // Update player's progress to next letter
     setGame(prev => ({
       ...prev,
       players: {
@@ -670,6 +699,7 @@ export default function Game() {
       }
     }));
     
+    // Switch player in 2-player mode
     if (playersCount === 2) {
       const nextPlayer = currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
@@ -708,8 +738,8 @@ export default function Game() {
     const player = game.players[game.currentPlayer];
     const currentItem = player.rosco[player.currentIndex];
     
-    if (!currentItem || currentItem.status !== "pending") {
-      setMessage({ text: "⚠️ Ya fue respondida", type: "error" });
+    if (!currentItem || currentItem.status !== "pending" || currentItem.passed) {
+      setMessage({ text: "⚠️ Esta letra no está disponible", type: "error" });
       setTimeout(() => setMessage({ text: "", type: "" }), 1500);
       return;
     }
@@ -825,8 +855,8 @@ export default function Game() {
               <li>📌 Cada jugador tiene su propio rosco</li>
               <li>✅ Acierto: suma punto y continúa</li>
               <li>❌ Fallo/tiempo: NO suma punto, pasa turno (2P)</li>
-              <li>⏭️ PASAPALABRA: pasa letra a 2da ronda</li>
-              <li>🔄 2da ronda: letras pasadas se intentan</li>
+              <li>⏭️ PASAPALABRA: pasa letra a 2da ronda, pasa turno (2P)</li>
+              <li>🔄 2da ronda: SOLO letras pasadas se intentan</li>
               <li>🏆 Gana quien tenga más aciertos</li>
               <li>🇻🇪 Palabras venezolanas según dificultad</li>
               <li>⏱️ 30 segundos por pregunta</li>
@@ -926,10 +956,11 @@ export default function Game() {
 
   const player = game.players[game.currentPlayer];
   const currentItem = player.rosco[player.currentIndex];
-  const answeredCount = player.rosco.filter(r => r.status !== "pending").length;
-  const remainingCount = 27 - answeredCount;
+  const answeredCount = player.rosco.filter(r => r.status !== "pending" && r.status !== "completed").length;
+  const remainingCount = player.rosco.filter(r => r.status === "pending" && !r.passed).length;
   const passedCount = player.rosco.filter(r => r.passed).length;
   const slangCount = player.rosco.filter(r => r.isSlang).length;
+  const completedCount = player.rosco.filter(r => r.status === "completed").length;
 
   return (
     <>
@@ -944,7 +975,7 @@ export default function Game() {
         
         {showVersion && (
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>
-            ✅ Versión {VERSION} | {slangCount} palabras venezolanas
+            ✅ Versión {VERSION} | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda - Solo letras pasadas"}
           </div>
         )}
         
@@ -970,7 +1001,7 @@ export default function Game() {
           )}
         </div>
 
-        {/* Circular Rosco - Shifted left, smaller */}
+        {/* Circular Rosco */}
         <div style={{ display: "flex", justifyContent: "center" }}>
           <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} time={time} />
         </div>
@@ -978,12 +1009,15 @@ export default function Game() {
         {/* Question Card */}
         <div style={{ borderRadius: "10px", padding: "10px", marginBottom: "10px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
           {currentItem.isSlang && <div style={{ fontSize: "10px", color: "#FF9800", fontWeight: "bold", marginBottom: "3px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
-          <div style={{ fontSize: "10px", color: "#666", marginBottom: "4px" }}>Letra {currentItem.letter} | Restantes: {remainingCount} | Pasadas: {passedCount}</div>
+          <div style={{ fontSize: "10px", color: "#666", marginBottom: "4px" }}>
+            Letra {currentItem.letter} | 
+            {game.round === 1 ? ` Restantes: ${remainingCount} | Pasadas: ${passedCount}` : ` Segunda ronda - ${remainingCount} letras por resolver`}
+          </div>
           <div style={{ fontSize: "14px", fontWeight: "bold", lineHeight: 1.3 }}>{currentItem.question}</div>
         </div>
 
         {/* Input and Buttons */}
-        {!showAnswer && (
+        {!showAnswer && currentItem.status === "pending" && !currentItem.passed && (
           <div style={{ marginBottom: "10px" }}>
             <input
               style={{ width: "100%", padding: "10px", fontSize: "13px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "6px" }}
@@ -1003,6 +1037,12 @@ export default function Game() {
           </div>
         )}
 
+        {!showAnswer && (currentItem.status !== "pending" || currentItem.passed) && game.round === 2 && (
+          <div style={{ marginBottom: "10px", padding: "10px", textAlign: "center", backgroundColor: "#FFF3E0", borderRadius: "8px", fontSize: "12px" }}>
+            ⏭️ Esta letra fue pasada - Segunda ronda
+          </div>
+        )}
+
         {/* Message */}
         {message.text && (
           <div style={{ marginBottom: "8px", padding: "6px", borderRadius: "6px", textAlign: "center", fontWeight: "bold", fontSize: "10px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
@@ -1016,6 +1056,7 @@ export default function Game() {
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#4CAF50", borderRadius: "50%", marginRight: "2px" }}></span> Correcto</div>
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#f44336", borderRadius: "50%", marginRight: "2px" }}></span> Incorrecto</div>
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#FFC107", borderRadius: "50%", marginRight: "2px" }}></span> Pasapalabra</div>
+          <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#9E9E9E", borderRadius: "50%", marginRight: "2px" }}></span> Completado</div>
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "2px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
         
