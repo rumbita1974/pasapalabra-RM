@@ -11,7 +11,7 @@ import { ROSCO_DB } from "../data/rosco-db";
 const ALPHABET = "ABCDEFGHIJLMNÑOPQRSTUVXYZ".split("");
 const TOTAL_LETTERS = 25;
 const QUESTION_TIME = 30;
-const VERSION = "2.2.0";
+const VERSION = "2.3.0";
 
 // Difficulty levels for Venezuelan slang
 const DIFFICULTY_SETTINGS = {
@@ -49,12 +49,23 @@ function buildRosco(difficulty, seedOffset = 0) {
   
   const grouped = Object.fromEntries(ALPHABET.map((l) => [l, []]));
   
+  // Add regular words to groups
   regularWords.forEach((item) => {
     if (!item || !item.letter) return;
     if (!item.answer || !item.clue) return;
     const letter = item.letter.toUpperCase();
     if (grouped[letter]) {
-      grouped[letter].push(item);
+      grouped[letter].push({ ...item, source: "español" });
+    }
+  });
+  
+  // Also add slang words to groups (for low-density letters)
+  slangs.forEach((item) => {
+    if (!item || !item.letter) return;
+    if (!item.answer || !item.clue) return;
+    const letter = item.letter.toUpperCase();
+    if (grouped[letter]) {
+      grouped[letter].push({ ...item, source: "venezolano" });
     }
   });
   
@@ -71,10 +82,12 @@ function buildRosco(difficulty, seedOffset = 0) {
     const slangForLetter = slangByLetter[letter];
     let selectedItem = null;
     
+    // First priority: selected slang for difficulty
     if (slangForLetter && slangForLetter.length > 0) {
       selectedItem = slangForLetter[0];
       delete slangByLetter[letter];
     } else {
+      // Second priority: combined pool (regular + slang) for all letters
       const pool = grouped[letter] || [];
       if (pool.length > 0) {
         const shuffled = shuffle(pool);
@@ -83,30 +96,63 @@ function buildRosco(difficulty, seedOffset = 0) {
     }
     
     if (!selectedItem) {
+      // Ultimate fallback - expanded for low-density letters
       const defaultWords = {
-        A: "amigo", B: "barco", C: "casa", D: "dado", E: "elefante",
-        F: "fuego", G: "gato", H: "hielo", I: "isla", J: "juego",
-        L: "luna", M: "mano", N: "nube", Ñ: "ñoño", O: "ojo",
-        P: "perro", Q: "queso", R: "ratón", S: "sol", T: "tigre",
-        U: "uva", V: "vaca", X: "xilófono", Y: "yate", Z: "zapato"
+        A: { answer: "amigo", clue: "Con la A: Persona con la que hay amistad.", source: "español" },
+        B: { answer: "barco", clue: "Con la B: Vehículo que navega.", source: "español" },
+        C: { answer: "casa", clue: "Con la C: Lugar donde se habita.", source: "español" },
+        D: { answer: "dado", clue: "Con la D: Cubo con números.", source: "español" },
+        E: { answer: "elefante", clue: "Con la E: Animal terrestre grande.", source: "español" },
+        F: { answer: "fuego", clue: "Con la F: Calor de combustión.", source: "español" },
+        G: { answer: "gato", clue: "Con la G: Animal doméstico.", source: "español" },
+        H: { answer: "hielo", clue: "Con la H: Agua sólida.", source: "español" },
+        I: { answer: "isla", clue: "Con la I: Tierra rodeada de agua.", source: "español" },
+        J: { answer: "juego", clue: "Con la J: Actividad divertida.", source: "español" },
+        L: { answer: "luna", clue: "Con la L: Satélite terrestre.", source: "español" },
+        M: { answer: "mano", clue: "Con la M: Extremidad.", source: "español" },
+        N: { answer: "nube", clue: "Con la N: Masa de vapor.", source: "español" },
+        Ñ: { answer: "ñoño", clue: "Con la Ñ: Persona ingenua (español/venezolano).", source: "combinado" },
+        O: { answer: "ojo", clue: "Con la O: Órgano visual.", source: "español" },
+        P: { answer: "perro", clue: "Con la P: Animal doméstico.", source: "español" },
+        Q: { answer: "queso", clue: "Con la Q: Derivado lácteo (español/venezolano).", source: "combinado" },
+        R: { answer: "ratón", clue: "Con la R: Roedor.", source: "español" },
+        S: { answer: "sol", clue: "Con la S: Estrella.", source: "español" },
+        T: { answer: "tigre", clue: "Con la T: Felino.", source: "español" },
+        U: { answer: "uva", clue: "Con la U: Fruta.", source: "español" },
+        V: { answer: "vaca", clue: "Con la V: Animal lechero.", source: "español" },
+        X: { answer: "xilófono", clue: "Con la X: Instrumento musical (español/venezolano).", source: "combinado" },
+        Y: { answer: "yate", clue: "Con la Y: Barco de lujo (español/venezolano).", source: "combinado" },
+        Z: { answer: "zapato", clue: "Con la Z: Calzado.", source: "español" }
       };
+      const fallback = defaultWords[letter];
       rosco.push({
         letter,
-        answer: defaultWords[letter] || "skip",
-        question: `Con la ${letter}: Palabra que empieza con ${letter}.`,
+        answer: fallback.answer,
+        question: fallback.clue,
         status: "pending",
-        isSlang: false,
+        isSlang: fallback.source === "venezolano",
+        source: fallback.source,
         passed: false
       });
       return;
     }
     
+    // For the selected item, modify clue if it's from regular Spanish for low-density letters
+    let finalClue = selectedItem.clue;
+    if (!isVenezuelanSlang(selectedItem) && (letter === 'Ñ' || letter === 'Q' || letter === 'X' || letter === 'Y')) {
+      // Add "(español/venezolano)" to clue for low-density letters
+      if (!finalClue.includes("español")) {
+        finalClue = finalClue.replace(`Con la ${letter}:`, `Con la ${letter} (español/venezolano):`);
+      }
+    }
+    
     rosco.push({
       letter,
       answer: (selectedItem.answer || "skip").toLowerCase(),
-      question: selectedItem.clue || `Con la ${letter}`,
+      question: finalClue,
       status: "pending",
       isSlang: isVenezuelanSlang(selectedItem),
+      source: selectedItem.source || (isVenezuelanSlang(selectedItem) ? "venezolano" : "español"),
       passed: false
     });
   });
@@ -803,7 +849,7 @@ export default function Game() {
         </Head>
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>
-            ✅ Versión {VERSION} (25 letras - sin K, sin W)
+            ✅ Versión {VERSION} (25 letras - combinado español/venezolano)
           </div>
           
           <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
@@ -845,6 +891,7 @@ export default function Game() {
             <h3>📖 Reglas:</h3>
             <ul style={{ lineHeight: 1.8 }}>
               <li>📌 Cada jugador tiene su propio rosco (25 letras)</li>
+              <li>📚 Banco de palabras: Español + Venezolano combinado</li>
               <li>✅ Acierto: suma punto y continúa</li>
               <li>❌ Fallo/tiempo: NO suma punto, pasa turno (2P)</li>
               <li>⏭️ PASAPALABRA: pasa letra a 2da ronda, pasa turno (2P)</li>
@@ -936,6 +983,7 @@ export default function Game() {
             <p>🎯 Jugador 1: {p1Correct} aciertos, {p1Wrong} fallos, {p1Passed} pasadas</p>
             {twoPlayer && <p>🎯 Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
             <p>🇻🇪 Palabras venezolanas incluidas según dificultad</p>
+            <p>📚 Banco combinado: Español + Venezolano</p>
             <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
             <p>📝 Rosco de {TOTAL_LETTERS} letras (sin K, sin W)</p>
           </div>
@@ -974,7 +1022,7 @@ export default function Game() {
         
         {showVersion && (
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>
-            ✅ Versión {VERSION} (25 letras) | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda - Letras pasadas"}
+            ✅ Versión {VERSION} (25 letras - Español/Venezolano) | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda - Letras pasadas"}
           </div>
         )}
         
@@ -1000,7 +1048,7 @@ export default function Game() {
           )}
         </div>
 
-        {/* Circular Rosco - 25 letters now spaces evenly */}
+        {/* Circular Rosco */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "5px", marginBottom: "10px" }}>
           <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} time={time} />
         </div>
