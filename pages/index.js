@@ -541,7 +541,7 @@ export default function Game() {
     };
     
     setShowAnswer(true);
-    showMessageWithDuration(`❌ Incorrecto. Respuesta correcta: ${currentItem.answer.toUpperCase()}`, "error", 6000);
+    showMessageWithDuration(`❌ Incorrecto. Respuesta correcta: ${currentItem.answer.toUpperCase()}`, "error", 4000);
     
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
@@ -853,7 +853,7 @@ export default function Game() {
 
           <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px" }}>
             <p style={{ fontSize: "14px", fontWeight: "bold" }}>Designed by Armando Guillen - Copyright 2026</p>
-            <p style={{ fontSize: "12px" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+            <p style={{ fontSize: "12px" }}>(No association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
         </div>
       </>
@@ -944,7 +944,7 @@ export default function Game() {
           
           <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
             <p>Designed by Armando Guillen - Copyright 2026</p>
-            <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+            <p>(No association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
         </div>
       </>
