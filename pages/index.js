@@ -7,9 +7,11 @@ import { ROSCO_DB } from "../data/rosco-db";
    CONFIG
 ========================= */
 
-const ALPHABET = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ".split("");
+// Removed K and W - 25 letters total (A-Z excluding K and W)
+const ALPHABET = "ABCDEFGHIJLMNÑOPQRSTUVXYZ".split("");
+const TOTAL_LETTERS = 25;
 const QUESTION_TIME = 30;
-const VERSION = "2.1.2";
+const VERSION = "2.2.0";
 
 // Difficulty levels for Venezuelan slang
 const DIFFICULTY_SETTINGS = {
@@ -84,14 +86,13 @@ function buildRosco(difficulty, seedOffset = 0) {
       const defaultWords = {
         A: "amigo", B: "barco", C: "casa", D: "dado", E: "elefante",
         F: "fuego", G: "gato", H: "hielo", I: "isla", J: "juego",
-        K: "kilo", L: "luna", M: "mano", N: "nube", Ñ: "ñoño",
-        O: "ojo", P: "perro", Q: "queso", R: "ratón", S: "sol",
-        T: "tigre", U: "uva", V: "vaca", W: "web", X: "xilófono",
-        Y: "yate", Z: "zapato"
+        L: "luna", M: "mano", N: "nube", Ñ: "ñoño", O: "ojo",
+        P: "perro", Q: "queso", R: "ratón", S: "sol", T: "tigre",
+        U: "uva", V: "vaca", X: "xilófono", Y: "yate", Z: "zapato"
       };
       rosco.push({
         letter,
-        answer: defaultWords[letter],
+        answer: defaultWords[letter] || "skip",
         question: `Con la ${letter}: Palabra que empieza con ${letter}.`,
         status: "pending",
         isSlang: false,
@@ -150,7 +151,6 @@ function hasPassedLetters(rosco) {
 }
 
 function getSecondRoundRosco(originalRosco) {
-  // Start second round: Keep all letters visible, reset passed letters to pending
   return originalRosco.map(item => {
     if (item.passed === true && item.status === "pending") {
       return { ...item, passed: false };
@@ -193,7 +193,6 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
       <svg width={size} height={size} style={{ display: "block", maxWidth: "100%", height: "auto" }}>
         <circle cx={center} cy={center} r={radius} fill="#f5f5f5" stroke="#ccc" strokeWidth="2"/>
         
-        {/* Timer in center */}
         <circle cx={center} cy={center} r={38} fill="white" stroke="#2196F3" strokeWidth="3"/>
         <text
           x={center}
@@ -804,7 +803,7 @@ export default function Game() {
         </Head>
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>
-            ✅ Versión {VERSION}
+            ✅ Versión {VERSION} (25 letras - sin K, sin W)
           </div>
           
           <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
@@ -845,7 +844,7 @@ export default function Game() {
           <div style={{ textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "30px" }}>
             <h3>📖 Reglas:</h3>
             <ul style={{ lineHeight: 1.8 }}>
-              <li>📌 Cada jugador tiene su propio rosco</li>
+              <li>📌 Cada jugador tiene su propio rosco (25 letras)</li>
               <li>✅ Acierto: suma punto y continúa</li>
               <li>❌ Fallo/tiempo: NO suma punto, pasa turno (2P)</li>
               <li>⏭️ PASAPALABRA: pasa letra a 2da ronda, pasa turno (2P)</li>
@@ -858,7 +857,7 @@ export default function Game() {
 
           <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px" }}>
             <p style={{ fontSize: "14px", fontWeight: "bold" }}>Designed by Armando Guillen - Copyright 2026</p>
-            <p style={{ fontSize: "12px" }}>(No association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+            <p style={{ fontSize: "12px" }}>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
         </div>
       </>
@@ -914,7 +913,7 @@ export default function Game() {
               <tbody>
                 <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}>
                   <td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 1</strong></td>
-                  <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct}</td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1Correct} / {TOTAL_LETTERS}</td>
                   <td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1Wrong}</td>
                   <td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1Passed}</td>
                   <td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1Score}</td>
@@ -922,7 +921,7 @@ export default function Game() {
                 {twoPlayer && (
                   <tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}>
                     <td style={{ padding: "12px", textAlign: "center", borderBottom: "1px solid #ddd" }}><strong>Jugador 2</strong></td>
-                    <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct}</td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2Correct} / {TOTAL_LETTERS}</td>
                     <td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2Wrong}</td>
                     <td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2Passed}</td>
                     <td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2Score}</td>
@@ -938,6 +937,7 @@ export default function Game() {
             {twoPlayer && <p>🎯 Jugador 2: {p2Correct} aciertos, {p2Wrong} fallos, {p2Passed} pasadas</p>}
             <p>🇻🇪 Palabras venezolanas incluidas según dificultad</p>
             <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
+            <p>📝 Rosco de {TOTAL_LETTERS} letras (sin K, sin W)</p>
           </div>
           
           <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ width: "100%", padding: "15px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🔄 Jugar de Nuevo</button>
@@ -948,7 +948,7 @@ export default function Game() {
           
           <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
             <p>Designed by Armando Guillen - Copyright 2026</p>
-            <p>(No association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+            <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
           </div>
         </div>
       </>
@@ -974,16 +974,16 @@ export default function Game() {
         
         {showVersion && (
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>
-            ✅ Versión {VERSION} | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda - Letras pasadas"}
+            ✅ Versión {VERSION} (25 letras) | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda - Letras pasadas"}
           </div>
         )}
         
-        {/* Player Score Cards - Reduced margin bottom to fix overlap */}
+        {/* Player Score Cards */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
           <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
             <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 1</div>
             <div style={{ fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
-            <div style={{ fontSize: "7px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
+            <div style={{ fontSize: "7px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length} / {TOTAL_LETTERS}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
           </div>
           
           <div style={{ flex: 1, textAlign: "center", padding: "3px" }}>
@@ -995,12 +995,12 @@ export default function Game() {
             <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
               <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 2</div>
               <div style={{ fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
-              <div style={{ fontSize: "7px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
+              <div style={{ fontSize: "7px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length} / {TOTAL_LETTERS}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
             </div>
           )}
         </div>
 
-        {/* Circular Rosco - Added margin top to prevent overlap */}
+        {/* Circular Rosco - 25 letters now spaces evenly */}
         <div style={{ display: "flex", justifyContent: "center", marginTop: "5px", marginBottom: "10px" }}>
           <CircularRosco letters={player.rosco} currentLetter={currentItem.letter} onLetterClick={jumpToLetter} time={time} />
         </div>
@@ -1009,8 +1009,8 @@ export default function Game() {
         <div style={{ borderRadius: "10px", padding: "10px", marginBottom: "10px", textAlign: "center", backgroundColor: currentItem.isSlang ? "#FFF3E0" : "#f5f5f5", border: currentItem.isSlang ? "2px solid #FF9800" : "1px solid #ddd" }}>
           {currentItem.isSlang && <div style={{ fontSize: "10px", color: "#FF9800", fontWeight: "bold", marginBottom: "3px" }}>🇻🇪 Palabra Venezolana 🇻🇪</div>}
           <div style={{ fontSize: "10px", color: "#666", marginBottom: "4px" }}>
-            Letra {currentItem.letter} | 
-            {game.round === 1 ? ` Restantes: ${remainingCount} | Pasadas: ${passedCount}` : ` Segunda ronda - ${remainingCount} letra(s) pendiente(s)`}
+            Letra {currentItem.letter} ({remainingCount + passedCount} de {TOTAL_LETTERS} restantes) | 
+            {game.round === 1 ? ` Pasadas: ${passedCount}` : ` Segunda ronda - ${remainingCount} letra(s) pendiente(s)`}
           </div>
           <div style={{ fontSize: "14px", fontWeight: "bold", lineHeight: 1.3 }}>{currentItem.question}</div>
         </div>
