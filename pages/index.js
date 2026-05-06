@@ -10,7 +10,7 @@ import { ROSCO_DB } from "../data/rosco-db";
 const ALPHABET = "ABCDEFGHIJLMNÑOPQRSTUVXYZ".split("");
 const TOTAL_LETTERS = 25;
 const QUESTION_TIME = 30;
-const VERSION = "2.5.0";
+const VERSION = "2.5.1";
 
 const DIFFICULTY_SETTINGS = {
   easy: { minSlang: 2, maxSlang: 3 },
@@ -302,6 +302,7 @@ export default function Game() {
     const nextIdx = getNextPendingIndex(newRosco, p.currentIndex);
     const completed = nextIdx === -1 && !hasPassedLetters(newRosco);
     
+    // Mark wrong and move to next letter
     setGame(prev => ({
       ...prev,
       players: {
@@ -313,8 +314,9 @@ export default function Game() {
     showMessage(`⏰ Tiempo! Respuesta: ${item.answer.toUpperCase()}`, "error", 3000);
     wrongSound.current?.play();
     
+    // Switch player in 2-player mode
     if (playersCount === 2 && !completed) {
-      const nextPlayer = prev => prev.currentPlayer === 1 ? 2 : 1;
+      const nextPlayer = game.currentPlayer === 1 ? 2 : 1;
       const nextData = game.players[nextPlayer];
       const nextIdx2 = getFirstPendingIndex(nextData.rosco);
       if (nextIdx2 !== -1) {
@@ -341,7 +343,7 @@ export default function Game() {
     const nextIdx = getNextPendingIndex(newRosco, p.currentIndex);
     
     if (nextIdx === -1 && hasPassedLetters(newRosco)) {
-      // Start second round
+      // Start second round for this player (they continue)
       const secondRosco = newRosco.map(i => i.passed ? { ...i, passed: false } : i);
       setGame(prev => ({
         ...prev,
@@ -349,7 +351,7 @@ export default function Game() {
       }));
       showMessage(`🔄 ¡Segunda ronda! Letras pasadas - Jugador ${game.currentPlayer}`, "info", 3000);
     } else if (nextIdx === -1) {
-      // Complete
+      // Player completed their rosco
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, score: p.score + 1, completed: true } }
@@ -358,6 +360,7 @@ export default function Game() {
       if (checkGameComplete({ ...game.players, [game.currentPlayer]: { ...p, rosco: newRosco, score: p.score + 1, completed: true } })) {
         setTimeout(() => setGameFinished(true), 2000);
       } else if (playersCount === 2) {
+        // Switch to other player
         const otherPlayer = game.currentPlayer === 1 ? 2 : 1;
         const otherData = game.players[otherPlayer];
         const otherNext = getFirstPendingIndex(otherData.rosco);
@@ -370,7 +373,7 @@ export default function Game() {
         }, 2000);
       }
     } else {
-      // Continue
+      // Continue to next letter (same player)
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, currentIndex: nextIdx, score: p.score + 1 } }
@@ -412,6 +415,7 @@ export default function Game() {
         setTimeout(() => setGameFinished(true), 2000);
       }
     } else {
+      // Move to next letter
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, currentIndex: nextIdx } }
@@ -421,7 +425,8 @@ export default function Game() {
     showMessage(`❌ Incorrecto. Respuesta: ${item.answer.toUpperCase()}`, "error", 3000);
     wrongSound.current?.play();
     
-    if (playersCount === 2 && nextIdx !== -1) {
+    // Switch player in 2-player mode
+    if (playersCount === 2) {
       const nextPlayer = game.currentPlayer === 1 ? 2 : 1;
       const nextData = game.players[nextPlayer];
       const nextIdx2 = getFirstPendingIndex(nextData.rosco);
@@ -444,22 +449,58 @@ export default function Game() {
       return;
     }
     
+    // Mark current letter as passed (yellow)
     const newRosco = [...p.rosco];
     newRosco[p.currentIndex] = { ...item, passed: true };
-    const nextIdx = getNextPendingIndex(newRosco, p.currentIndex);
     
+    // Find the NEXT pending letter (skip the passed one)
+    let nextIndex = -1;
+    for (let i = p.currentIndex + 1; i < newRosco.length; i++) {
+      if (newRosco[i].status === "pending" && !newRosco[i].passed) {
+        nextIndex = i;
+        break;
+      }
+    }
+    if (nextIndex === -1) {
+      for (let i = 0; i < p.currentIndex; i++) {
+        if (newRosco[i].status === "pending" && !newRosco[i].passed) {
+          nextIndex = i;
+          break;
+        }
+      }
+    }
+    
+    // Update current player's progress to the NEXT letter
     setGame(prev => ({
       ...prev,
-      players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, currentIndex: nextIdx !== -1 ? nextIdx : p.currentIndex } }
+      players: {
+        ...prev.players,
+        [prev.currentPlayer]: {
+          ...p,
+          rosco: newRosco,
+          currentIndex: nextIndex !== -1 ? nextIndex : p.currentIndex
+        }
+      }
     }));
     
+    // Switch to other player in 2-player mode
     if (playersCount === 2) {
       const nextPlayer = game.currentPlayer === 1 ? 2 : 1;
-      const nextData = game.players[nextPlayer];
-      const nextIdx2 = getFirstPendingIndex(nextData.rosco);
-      if (nextIdx2 !== -1) {
-        setGame(prev => ({ ...prev, currentPlayer: nextPlayer, players: { ...prev.players, [nextPlayer]: { ...nextData, currentIndex: nextIdx2 } } }));
-      }
+      const nextPlayerData = game.players[nextPlayer];
+      // Get the next player's current pending letter (where they left off)
+      const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
+      
+      setGame(prev => ({
+        ...prev,
+        currentPlayer: nextPlayer,
+        players: {
+          ...prev.players,
+          [nextPlayer]: {
+            ...nextPlayerData,
+            currentIndex: nextPlayerIndex !== -1 ? nextPlayerIndex : 0
+          }
+        }
+      }));
     }
     
     showMessage(`⏭️ PASAPALABRA! ${playersCount === 2 ? `Turno Jugador ${game.currentPlayer === 1 ? 2 : 1}` : "Siguiente letra"}`, "info", 2000);
@@ -575,7 +616,7 @@ export default function Game() {
               <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th></tr></thead>
               <tbody>
                 <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1c} / {TOTAL_LETTERS}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1w}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1p}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1c}</td></tr>
-                {game.players[2] && <tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2c} / {TOTAL_LETTERS}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2w}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2p}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2c}</td></tr>}
+                {game.players[2] && <tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2c} / {TOTAL_LETTERS}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2w}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2p}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2c}</tr>}
               </tbody>
             </table>
           </div>
