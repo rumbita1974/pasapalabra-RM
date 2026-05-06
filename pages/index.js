@@ -10,7 +10,7 @@ import { ROSCO_DB } from "../data/rosco-db";
 const ALPHABET = "ABCDEFGHIJLMNÑOPQRSTUVXYZ".split("");
 const TOTAL_LETTERS = 25;
 const QUESTION_TIME = 30;
-const VERSION = "2.5.1";
+const VERSION = "2.5.2";
 
 const DIFFICULTY_SETTINGS = {
   easy: { minSlang: 2, maxSlang: 3 },
@@ -172,12 +172,29 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
           
           return (
             <g key={item.letter}>
-              <circle cx={x} cy={y} r={buttonRadius} fill={getButtonColor(item)} stroke={isCurrent ? "#FF9800" : "#999"} strokeWidth={isCurrent ? 3 : 1.5}
+              <circle 
+                cx={x} 
+                cy={y} 
+                r={buttonRadius} 
+                fill={getButtonColor(item)} 
+                stroke={isCurrent ? "#FF9800" : "#999"} 
+                strokeWidth={isCurrent ? 3 : 1.5}
                 onClick={() => (item.status === "pending" && !item.passed) && onLetterClick(item.letter)}
-                style={{ cursor: (item.status === "pending" && !item.passed) ? "pointer" : "not-allowed", transition: "all 0.2s" }}/>
-              <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fill={getTextColor(item)} fontSize={fontSize} fontWeight="bold"
+                style={{ cursor: (item.status === "pending" && !item.passed) ? "pointer" : "not-allowed", transition: "all 0.2s" }}
+              />
+              <text 
+                x={x} 
+                y={y} 
+                textAnchor="middle" 
+                dominantBaseline="middle" 
+                fill={getTextColor(item)} 
+                fontSize={fontSize} 
+                fontWeight="bold"
                 style={{ cursor: (item.status === "pending" && !item.passed) ? "pointer" : "not-allowed", userSelect: "none" }}
-                onClick={() => (item.status === "pending" && !item.passed) && onLetterClick(item.letter)}>{item.letter}</text>
+                onClick={() => (item.status === "pending" && !item.passed) && onLetterClick(item.letter)}
+              >
+                {item.letter}
+              </text>
             </g>
           );
         })}
@@ -302,7 +319,6 @@ export default function Game() {
     const nextIdx = getNextPendingIndex(newRosco, p.currentIndex);
     const completed = nextIdx === -1 && !hasPassedLetters(newRosco);
     
-    // Mark wrong and move to next letter
     setGame(prev => ({
       ...prev,
       players: {
@@ -314,7 +330,6 @@ export default function Game() {
     showMessage(`⏰ Tiempo! Respuesta: ${item.answer.toUpperCase()}`, "error", 3000);
     wrongSound.current?.play();
     
-    // Switch player in 2-player mode
     if (playersCount === 2 && !completed) {
       const nextPlayer = game.currentPlayer === 1 ? 2 : 1;
       const nextData = game.players[nextPlayer];
@@ -343,7 +358,6 @@ export default function Game() {
     const nextIdx = getNextPendingIndex(newRosco, p.currentIndex);
     
     if (nextIdx === -1 && hasPassedLetters(newRosco)) {
-      // Start second round for this player (they continue)
       const secondRosco = newRosco.map(i => i.passed ? { ...i, passed: false } : i);
       setGame(prev => ({
         ...prev,
@@ -351,7 +365,6 @@ export default function Game() {
       }));
       showMessage(`🔄 ¡Segunda ronda! Letras pasadas - Jugador ${game.currentPlayer}`, "info", 3000);
     } else if (nextIdx === -1) {
-      // Player completed their rosco
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, score: p.score + 1, completed: true } }
@@ -360,7 +373,6 @@ export default function Game() {
       if (checkGameComplete({ ...game.players, [game.currentPlayer]: { ...p, rosco: newRosco, score: p.score + 1, completed: true } })) {
         setTimeout(() => setGameFinished(true), 2000);
       } else if (playersCount === 2) {
-        // Switch to other player
         const otherPlayer = game.currentPlayer === 1 ? 2 : 1;
         const otherData = game.players[otherPlayer];
         const otherNext = getFirstPendingIndex(otherData.rosco);
@@ -373,7 +385,6 @@ export default function Game() {
         }, 2000);
       }
     } else {
-      // Continue to next letter (same player)
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, currentIndex: nextIdx, score: p.score + 1 } }
@@ -397,7 +408,6 @@ export default function Game() {
     const nextIdx = getNextPendingIndex(newRosco, p.currentIndex);
     
     if (nextIdx === -1 && hasPassedLetters(newRosco)) {
-      // Start second round
       const secondRosco = newRosco.map(i => i.passed ? { ...i, passed: false } : i);
       setGame(prev => ({
         ...prev,
@@ -405,7 +415,6 @@ export default function Game() {
       }));
       showMessage(`🔄 ¡Segunda ronda! Letras pasadas - Jugador ${game.currentPlayer}`, "info", 3000);
     } else if (nextIdx === -1) {
-      // Complete without scoring
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, completed: true } }
@@ -415,7 +424,6 @@ export default function Game() {
         setTimeout(() => setGameFinished(true), 2000);
       }
     } else {
-      // Move to next letter
       setGame(prev => ({
         ...prev,
         players: { ...prev.players, [prev.currentPlayer]: { ...p, rosco: newRosco, currentIndex: nextIdx } }
@@ -425,7 +433,6 @@ export default function Game() {
     showMessage(`❌ Incorrecto. Respuesta: ${item.answer.toUpperCase()}`, "error", 3000);
     wrongSound.current?.play();
     
-    // Switch player in 2-player mode
     if (playersCount === 2) {
       const nextPlayer = game.currentPlayer === 1 ? 2 : 1;
       const nextData = game.players[nextPlayer];
@@ -449,11 +456,9 @@ export default function Game() {
       return;
     }
     
-    // Mark current letter as passed (yellow)
     const newRosco = [...p.rosco];
     newRosco[p.currentIndex] = { ...item, passed: true };
     
-    // Find the NEXT pending letter (skip the passed one)
     let nextIndex = -1;
     for (let i = p.currentIndex + 1; i < newRosco.length; i++) {
       if (newRosco[i].status === "pending" && !newRosco[i].passed) {
@@ -470,7 +475,6 @@ export default function Game() {
       }
     }
     
-    // Update current player's progress to the NEXT letter
     setGame(prev => ({
       ...prev,
       players: {
@@ -483,11 +487,9 @@ export default function Game() {
       }
     }));
     
-    // Switch to other player in 2-player mode
     if (playersCount === 2) {
       const nextPlayer = game.currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
-      // Get the next player's current pending letter (where they left off)
       const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
       
       setGame(prev => ({
@@ -548,22 +550,27 @@ export default function Game() {
     const slangInfo = { easy: "2-3", medium: "6-8", hard: "10-12" };
     return (
       <>
-        <Head><title>Pasapalabra Venezuela</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+        <Head>
+          <title>Pasapalabra Venezuela</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
           <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-          <meta httpEquiv="Pragma" content="no-cache" /><meta httpEquiv="Expires" content="0" />
+          <meta httpEquiv="Pragma" content="no-cache" />
+          <meta httpEquiv="Expires" content="0" />
         </Head>
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
           <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>✅ Versión {VERSION} (25 letras)</div>
           <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>🗑️ Clear Cache & Force Reload</button>
           <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>🎙️ Pasapalabra Venezuela 🎙️</h1>
           <p style={{ marginBottom: "30px", color: "#666" }}>¡Incluye palabras del argot venezolano!</p>
-          <div style={{ marginBottom: "30px" }}><h3>👥 Jugadores</h3>
+          <div style={{ marginBottom: "30px" }}>
+            <h3>👥 Jugadores</h3>
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
               <button onClick={() => setPlayersCount(1)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: playersCount === 1 ? "#2196F3" : "#fff", color: playersCount === 1 ? "#fff" : "#333", borderColor: playersCount === 1 ? "#2196F3" : "#ccc" }}>1 jugador</button>
               <button onClick={() => setPlayersCount(2)} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: playersCount === 2 ? "#2196F3" : "#fff", color: playersCount === 2 ? "#fff" : "#333", borderColor: playersCount === 2 ? "#2196F3" : "#ccc" }}>2 jugadores</button>
             </div>
           </div>
-          <div style={{ marginBottom: "30px" }}><h3>📚 Dificultad</h3>
+          <div style={{ marginBottom: "30px" }}>
+            <h3>📚 Dificultad</h3>
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap" }}>
               <button onClick={() => setDifficulty("easy")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: difficulty === "easy" ? "#4CAF50" : "#fff", color: difficulty === "easy" ? "#fff" : "#333", borderColor: difficulty === "easy" ? "#4CAF50" : "#ccc" }}>Fácil <div style={{ fontSize: "10px" }}>({slangInfo.easy} slang)</div></button>
               <button onClick={() => setDifficulty("medium")} style={{ padding: "12px 24px", fontSize: "16px", cursor: "pointer", border: "2px solid", borderRadius: "10px", backgroundColor: difficulty === "medium" ? "#FF9800" : "#fff", color: difficulty === "medium" ? "#fff" : "#333", borderColor: difficulty === "medium" ? "#FF9800" : "#ccc" }}>Medio <div style={{ fontSize: "10px" }}>({slangInfo.medium} slang)</div></button>
@@ -605,21 +612,48 @@ export default function Game() {
     
     return (
       <>
-        <Head><title>Resultados</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" /></Head>
+        <Head>
+          <title>Resultados</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+        </Head>
         <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
           <h1 style={{ textAlign: "center" }}>🏆 RESULTADOS FINALES 🏆</h1>
           {winner === 1 && <h2 style={{ textAlign: "center", color: "#2196F3" }}>🎉 ¡Jugador 1 GANA! 🎉</h2>}
           {winner === 2 && <h2 style={{ textAlign: "center", color: "#FF9800" }}>🎉 ¡Jugador 2 GANA! 🎉</h2>}
           {winner === 0 && <h2 style={{ textAlign: "center" }}>🤝 ¡EMPATE! 🤝</h2>}
+          
           <div style={{ overflowX: "auto", marginBottom: "30px" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th></tr></thead>
+              <thead>
+                <tr>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>Jugador</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th>
+                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th>
+                </tr>
+              </thead>
               <tbody>
-                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 1</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1c} / {TOTAL_LETTERS}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1w}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1p}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1c}</td></tr>
-                {game.players[2] && <tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}><td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 2</strong></td><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2c} / {TOTAL_LETTERS}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2w}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2p}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2c}</tr>}
+                <tr style={winner === 1 ? { backgroundColor: "#FFF9C4" } : {}}>
+                  <td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 1</strong></td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p1c} / {TOTAL_LETTERS}</td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p1w}</td>
+                  <td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p1p}</td>
+                  <td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{p1c}</td>
+                </tr>
+                {game.players[2] && (
+                  <tr style={winner === 2 ? { backgroundColor: "#FFF9C4" } : {}}>
+                    <td style={{ padding: "12px", textAlign: "center" }}><strong>Jugador 2</strong></td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold" }}>{p2c} / {TOTAL_LETTERS}</td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#f44336" }}>{p2w}</td>
+                    <td style={{ padding: "12px", textAlign: "center", color: "#FFC107" }}>{p2p}</td>
+                    <td style={{ padding: "12px", textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{p2c}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+          
           <div style={{ backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", margin: "30px 0" }}>
             <h3>📋 Resumen del Juego:</h3>
             <p>🎯 Jugador 1: {p1c} aciertos, {p1w} fallos, {p1p} pasadas</p>
@@ -628,9 +662,17 @@ export default function Game() {
             <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
             <p>📝 Rosco de {TOTAL_LETTERS} letras</p>
           </div>
+          
           <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ width: "100%", padding: "15px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🔄 Jugar de Nuevo</button>
-          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center" }}><button onClick={clearCacheAndReload} style={{ padding: "8px 16px", fontSize: "12px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>🗑️ Clear Cache & Reload</button></div>
-          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}><p>Designed by Armando Guillen - Copyright 2026</p><p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p></div>
+          
+          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center" }}>
+            <button onClick={clearCacheAndReload} style={{ padding: "8px 16px", fontSize: "12px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>🗑️ Clear Cache & Reload</button>
+          </div>
+          
+          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
+            <p>Designed by Armando Guillen - Copyright 2026</p>
+            <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
+          </div>
         </div>
       </>
     );
@@ -644,11 +686,19 @@ export default function Game() {
 
   return (
     <>
-      <Head><title>Pasapalabra - Jugador {game.currentPlayer}</title><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta httpEquiv="Pragma" content="no-cache" /><meta httpEquiv="Expires" content="0" />
+      <Head>
+        <title>Pasapalabra - Jugador {game.currentPlayer}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes" />
+        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+        <meta httpEquiv="Pragma" content="no-cache" />
+        <meta httpEquiv="Expires" content="0" />
       </Head>
       <div style={{ fontFamily: "system-ui", padding: "8px", maxWidth: "500px", margin: "0 auto" }}>
-        {showVersion && <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>✅ Versión {VERSION} | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda"}</div>}
+        {showVersion && (
+          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>
+            ✅ Versión {VERSION} | {game.round === 1 ? `${slangCount} palabras venezolanas` : "Segunda ronda"}
+          </div>
+        )}
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
           <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: game.currentPlayer === 1 ? "#E3F2FD" : "#f5f5f5", border: game.currentPlayer === 1 ? "2px solid #2196F3" : "1px solid #ddd" }}>
@@ -657,7 +707,12 @@ export default function Game() {
             <div style={{ fontSize: "7px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length}/{TOTAL_LETTERS} ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length} ⏭️ {game.players[1].rosco.filter(r => r.passed).length}</div>
             {game.players[1].completed && <div style={{ fontSize: "6px", color: "#4CAF50", marginTop: "2px" }}>✅ COMPLETADO</div>}
           </div>
-          <div style={{ flex: 1, textAlign: "center", padding: "3px" }}><div style={{ fontSize: "10px", color: "#666" }}>Ronda {game.round}</div><div style={{ fontSize: "10px", color: "#2196F3", fontWeight: "bold" }}>Turno J{game.currentPlayer}</div></div>
+          
+          <div style={{ flex: 1, textAlign: "center", padding: "3px" }}>
+            <div style={{ fontSize: "10px", color: "#666" }}>Ronda {game.round}</div>
+            <div style={{ fontSize: "10px", color: "#2196F3", fontWeight: "bold" }}>Turno J{game.currentPlayer}</div>
+          </div>
+          
           {game.players[2] && (
             <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: game.currentPlayer === 2 ? "#FFF3E0" : "#f5f5f5", border: game.currentPlayer === 2 ? "2px solid #FF9800" : "1px solid #ddd" }}>
               <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 2</div>
@@ -678,7 +733,13 @@ export default function Game() {
 
         {!showAnswer && currentItem.status === "pending" && !currentItem.passed && (
           <div style={{ marginBottom: "10px" }}>
-            <input style={{ width: "100%", padding: "10px", fontSize: "13px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "6px" }} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Escribe tu respuesta..." autoFocus />
+            <input 
+              style={{ width: "100%", padding: "10px", fontSize: "13px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "6px" }} 
+              value={input} 
+              onChange={(e) => setInput(e.target.value)} 
+              placeholder="Escribe tu respuesta..." 
+              autoFocus 
+            />
             <div style={{ display: "flex", gap: "6px", flexDirection: "row" }}>
               <button onClick={answer} style={{ flex: 1, padding: "10px", fontSize: "13px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>📝 Responder</button>
               <button onClick={handlePasapalabra} style={{ flex: 1, padding: "10px", fontSize: "13px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "8px", cursor: "pointer" }}>⏭️ PASAPALABRA</button>
@@ -686,7 +747,11 @@ export default function Game() {
           </div>
         )}
 
-        {message.text && <div style={{ marginBottom: "8px", padding: "6px", borderRadius: "6px", textAlign: "center", fontWeight: "bold", fontSize: "10px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>{message.text}</div>}
+        {message.text && (
+          <div style={{ marginBottom: "8px", padding: "6px", borderRadius: "6px", textAlign: "center", fontWeight: "bold", fontSize: "10px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
+            {message.text}
+          </div>
+        )}
 
         <div style={{ display: "flex", justifyContent: "center", gap: "6px", fontSize: "7px", borderTop: "1px solid #ddd", paddingTop: "6px", flexWrap: "wrap" }}>
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "2px" }}></span> Sin responder</div>
@@ -696,7 +761,9 @@ export default function Game() {
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "2px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
         
-        <div style={{ textAlign: "center", marginTop: "6px" }}><button onClick={clearCacheAndReload} style={{ padding: "2px 6px", fontSize: "7px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>🗑️ Force Reload</button></div>
+        <div style={{ textAlign: "center", marginTop: "6px" }}>
+          <button onClick={clearCacheAndReload} style={{ padding: "2px 6px", fontSize: "7px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>🗑️ Force Reload</button>
+        </div>
       </div>
     </>
   );
