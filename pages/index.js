@@ -11,7 +11,7 @@ import { ROSCO_DB } from "../data/rosco-db";
 const ALPHABET = "ABCDEFGHIJLMNÑOPQRSTUVXYZ".split("");
 const TOTAL_LETTERS = 25;
 const QUESTION_TIME = 30;
-const VERSION = "2.3.0";
+const VERSION = "2.4.0";
 
 // Difficulty levels for Venezuelan slang
 const DIFFICULTY_SETTINGS = {
@@ -96,7 +96,6 @@ function buildRosco(difficulty, seedOffset = 0) {
     }
     
     if (!selectedItem) {
-      // Ultimate fallback - expanded for low-density letters
       const defaultWords = {
         A: { answer: "amigo", clue: "Con la A: Persona con la que hay amistad.", source: "español" },
         B: { answer: "barco", clue: "Con la B: Vehículo que navega.", source: "español" },
@@ -137,10 +136,8 @@ function buildRosco(difficulty, seedOffset = 0) {
       return;
     }
     
-    // For the selected item, modify clue if it's from regular Spanish for low-density letters
     let finalClue = selectedItem.clue;
     if (!isVenezuelanSlang(selectedItem) && (letter === 'Ñ' || letter === 'Q' || letter === 'X' || letter === 'Y')) {
-      // Add "(español/venezolano)" to clue for low-density letters
       if (!finalClue.includes("español")) {
         finalClue = finalClue.replace(`Con la ${letter}:`, `Con la ${letter} (español/venezolano):`);
       }
@@ -203,6 +200,16 @@ function getSecondRoundRosco(originalRosco) {
     }
     return item;
   });
+}
+
+function isGameComplete(players, playersCount) {
+  if (playersCount === 1) {
+    // Single player: game complete when player 1 is completed
+    return players[1].completed === true;
+  } else {
+    // Two players: game complete when BOTH players are completed
+    return players[1].completed === true && players[2].completed === true;
+  }
 }
 
 /* =========================
@@ -428,6 +435,11 @@ export default function Game() {
     
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
+    let playerCompleted = false;
+    if (nextIndex === -1) {
+      playerCompleted = true;
+    }
+    
     setGame(prev => ({
       ...prev,
       players: {
@@ -435,13 +447,15 @@ export default function Game() {
         [currentPlayer]: {
           ...player,
           rosco: updatedRosco,
-          currentIndex: nextIndex !== -1 ? nextIndex : player.currentIndex
+          currentIndex: nextIndex !== -1 ? nextIndex : player.currentIndex,
+          completed: playerCompleted ? true : player.completed
         }
       }
     }));
     
     wrongSound.current?.play();
     
+    // Switch player in 2-player mode
     if (playersCount === 2 && !gameFinished) {
       const nextPlayer = currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
@@ -462,8 +476,17 @@ export default function Game() {
       }
     }
     
+    // Check if game is complete (both players done)
     setTimeout(() => {
       setShowAnswer(false);
+      if (playersCount === 2) {
+        const updatedGame = { ...game, players: { ...game.players, [currentPlayer]: { ...player, rosco: updatedRosco, completed: playerCompleted } } };
+        if (isGameComplete(updatedGame.players, playersCount)) {
+          endGame();
+        }
+      } else if (playersCount === 1 && playerCompleted) {
+        endGame();
+      }
     }, 3000);
     
     setInput("");
@@ -488,67 +511,43 @@ export default function Game() {
     
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
+    let playerCompleted = false;
+    let shouldStartSecondRound = false;
+    
     if (nextIndex === -1) {
+      // No more pending unpassed letters
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
-        const secondRoundRosco = getSecondRoundRosco(updatedRosco);
-        const firstPassedIndex = getFirstPassedLetterIndex(updatedRosco);
-        
-        if (firstPassedIndex !== -1) {
-          setGame(prev => ({
-            ...prev,
-            round: 2,
-            players: {
-              ...prev.players,
-              [currentPlayer]: {
-                ...player,
-                rosco: secondRoundRosco,
-                currentIndex: firstPassedIndex,
-                score: player.score + 1
-              }
-            }
-          }));
-          showMessageWithDuration("🔄 ¡Segunda ronda! Solo letras pasadas", "info", 3000);
-        } else {
-          endGame();
-        }
+        // Start second round for this player
+        shouldStartSecondRound = true;
       } else {
+        playerCompleted = true;
+      }
+    }
+    
+    if (shouldStartSecondRound) {
+      const secondRoundRosco = getSecondRoundRosco(updatedRosco);
+      const firstPassedIndex = getFirstPassedLetterIndex(updatedRosco);
+      
+      if (firstPassedIndex !== -1) {
         setGame(prev => ({
           ...prev,
           players: {
             ...prev.players,
             [currentPlayer]: {
               ...player,
-              rosco: updatedRosco,
+              rosco: secondRoundRosco,
+              currentIndex: firstPassedIndex,
               score: player.score + 1,
-              completed: true
+              completed: false
             }
           }
         }));
-        
-        showMessageWithDuration(`🎉 ¡Jugador ${currentPlayer} completó! 🎉`, "success", 3000);
-        
-        const otherPlayer = currentPlayer === 1 ? 2 : 1;
-        if (playersCount === 1 || (game.players[otherPlayer] && game.players[otherPlayer].completed)) {
-          setTimeout(() => endGame(), 2000);
-        } else if (playersCount === 2) {
-          setTimeout(() => {
-            const nextPlayerData = game.players[otherPlayer];
-            const nextIdx = getFirstPendingIndex(nextPlayerData.rosco);
-            setGame(prev => ({
-              ...prev,
-              currentPlayer: otherPlayer,
-              players: {
-                ...prev.players,
-                [otherPlayer]: {
-                  ...nextPlayerData,
-                  currentIndex: nextIdx !== -1 ? nextIdx : 0
-                }
-              }
-            }));
-          }, 2000);
-        }
+        showMessageWithDuration(`🔄 ¡Segunda ronda! Letras pasadas - Jugador ${currentPlayer}`, "info", 3000);
+      } else {
+        playerCompleted = true;
       }
-    } else {
+    } else if (nextIndex !== -1) {
+      // Continue to next pending letter
       setGame(prev => ({
         ...prev,
         players: {
@@ -561,8 +560,46 @@ export default function Game() {
           }
         }
       }));
-      
       showMessageWithDuration(`✅ ¡Correcto! Letra ${updatedRosco[nextIndex].letter}`, "success", 1500);
+    } else if (playerCompleted) {
+      setGame(prev => ({
+        ...prev,
+        players: {
+          ...prev.players,
+          [currentPlayer]: {
+            ...player,
+            rosco: updatedRosco,
+            score: player.score + 1,
+            completed: true
+          }
+        }
+      }));
+      
+      showMessageWithDuration(`🎉 ¡Jugador ${currentPlayer} completó! Esperando al otro jugador... 🎉`, "success", 3000);
+      
+      // Check if game is complete (both players done)
+      setTimeout(() => {
+        const updatedGame = { ...game, players: { ...game.players, [currentPlayer]: { ...player, rosco: updatedRosco, score: player.score + 1, completed: true } } };
+        if (isGameComplete(updatedGame.players, playersCount)) {
+          endGame();
+        } else {
+          // Switch to other player
+          const otherPlayer = currentPlayer === 1 ? 2 : 1;
+          const otherPlayerData = updatedGame.players[otherPlayer];
+          const otherIndex = getFirstPendingIndex(otherPlayerData.rosco);
+          setGame(prev => ({
+            ...prev,
+            currentPlayer: otherPlayer,
+            players: {
+              ...prev.players,
+              [otherPlayer]: {
+                ...otherPlayerData,
+                currentIndex: otherIndex !== -1 ? otherIndex : 0
+              }
+            }
+          }));
+        }
+      }, 2000);
     }
     
     correctSound.current?.play();
@@ -591,15 +628,16 @@ export default function Game() {
     
     const nextIndex = getNextPendingIndex(updatedRosco, player.currentIndex);
     
+    let playerCompleted = false;
     if (nextIndex === -1) {
       if (hasPassedLetters(updatedRosco) && game.round === 1) {
+        // Start second round
         const secondRoundRosco = getSecondRoundRosco(updatedRosco);
         const firstPassedIndex = getFirstPassedLetterIndex(updatedRosco);
         
         if (firstPassedIndex !== -1) {
           setGame(prev => ({
             ...prev,
-            round: 2,
             players: {
               ...prev.players,
               [currentPlayer]: {
@@ -609,43 +647,12 @@ export default function Game() {
               }
             }
           }));
-          showMessageWithDuration("🔄 ¡Segunda ronda! Letras pasadas", "info", 3000);
+          showMessageWithDuration(`🔄 ¡Segunda ronda! Letras pasadas - Jugador ${currentPlayer}`, "info", 3000);
         } else {
-          endGame();
+          playerCompleted = true;
         }
       } else {
-        setGame(prev => ({
-          ...prev,
-          players: {
-            ...prev.players,
-            [currentPlayer]: {
-              ...player,
-              rosco: updatedRosco,
-              completed: true
-            }
-          }
-        }));
-        
-        const otherPlayer = currentPlayer === 1 ? 2 : 1;
-        if (playersCount === 1 || (game.players[otherPlayer] && game.players[otherPlayer].completed)) {
-          setTimeout(() => endGame(), 2000);
-        } else if (playersCount === 2) {
-          setTimeout(() => {
-            const nextPlayerData = game.players[otherPlayer];
-            const nextIdx = getFirstPendingIndex(nextPlayerData.rosco);
-            setGame(prev => ({
-              ...prev,
-              currentPlayer: otherPlayer,
-              players: {
-                ...prev.players,
-                [otherPlayer]: {
-                  ...nextPlayerData,
-                  currentIndex: nextIdx !== -1 ? nextIdx : 0
-                }
-              }
-            }));
-          }, 2000);
-        }
+        playerCompleted = true;
       }
     } else {
       setGame(prev => ({
@@ -659,32 +666,40 @@ export default function Game() {
           }
         }
       }));
-      
-      if (playersCount === 2) {
-        const nextPlayer = currentPlayer === 1 ? 2 : 1;
-        const nextPlayerData = game.players[nextPlayer];
-        const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
-        
-        if (nextPlayerIndex !== -1) {
-          setGame(prev => ({
-            ...prev,
-            currentPlayer: nextPlayer,
-            players: {
-              ...prev.players,
-              [nextPlayer]: {
-                ...nextPlayerData,
-                currentIndex: nextPlayerIndex
-              }
-            }
-          }));
-        }
-      }
     }
     
     wrongSound.current?.play();
     
+    // Switch player in 2-player mode
+    if (playersCount === 2 && !gameFinished) {
+      const nextPlayer = currentPlayer === 1 ? 2 : 1;
+      const nextPlayerData = game.players[nextPlayer];
+      const nextPlayerIndex = getFirstPendingIndex(nextPlayerData.rosco);
+      
+      if (nextPlayerIndex !== -1) {
+        setGame(prev => ({
+          ...prev,
+          currentPlayer: nextPlayer,
+          players: {
+            ...prev.players,
+            [nextPlayer]: {
+              ...nextPlayerData,
+              currentIndex: nextPlayerIndex
+            }
+          }
+        }));
+      }
+    }
+    
+    // Check if game is complete
     setTimeout(() => {
       setShowAnswer(false);
+      if (playerCompleted) {
+        const updatedGame = { ...game, players: { ...game.players, [currentPlayer]: { ...player, rosco: updatedRosco, completed: true } } };
+        if (isGameComplete(updatedGame.players, playersCount)) {
+          endGame();
+        }
+      }
     }, 3000);
     
     setInput("");
@@ -737,6 +752,7 @@ export default function Game() {
       }
     }));
     
+    // Switch player in 2-player mode
     if (playersCount === 2) {
       const nextPlayer = currentPlayer === 1 ? 2 : 1;
       const nextPlayerData = game.players[nextPlayer];
@@ -896,7 +912,7 @@ export default function Game() {
               <li>❌ Fallo/tiempo: NO suma punto, pasa turno (2P)</li>
               <li>⏭️ PASAPALABRA: pasa letra a 2da ronda, pasa turno (2P)</li>
               <li>🔄 2da ronda: SOLO letras pasadas se intentan</li>
-              <li>🏆 Gana quien tenga más aciertos</li>
+              <li>🏆 El juego termina cuando AMBOS jugadores completan el rosco</li>
               <li>🇻🇪 Palabras venezolanas según dificultad</li>
               <li>⏱️ 30 segundos por pregunta</li>
             </ul>
@@ -1032,6 +1048,7 @@ export default function Game() {
             <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 1</div>
             <div style={{ fontSize: "20px", fontWeight: "bold", color: "#2196F3" }}>{game.players[1].score}</div>
             <div style={{ fontSize: "7px" }}>✅ {game.players[1].rosco.filter(r => r.status === "correct").length} / {TOTAL_LETTERS}  ❌ {game.players[1].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[1].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
+            {game.players[1].completed && <div style={{ fontSize: "6px", color: "#4CAF50", marginTop: "2px" }}>✅ COMPLETADO</div>}
           </div>
           
           <div style={{ flex: 1, textAlign: "center", padding: "3px" }}>
@@ -1044,6 +1061,7 @@ export default function Game() {
               <div style={{ fontWeight: "bold", fontSize: "11px" }}>Jugador 2</div>
               <div style={{ fontSize: "20px", fontWeight: "bold", color: "#FF9800" }}>{game.players[2].score}</div>
               <div style={{ fontSize: "7px" }}>✅ {game.players[2].rosco.filter(r => r.status === "correct").length} / {TOTAL_LETTERS}  ❌ {game.players[2].rosco.filter(r => r.status === "wrong").length}  ⏭️ {game.players[2].rosco.filter(r => r.passed === true && r.status === "pending").length}</div>
+              {game.players[2].completed && <div style={{ fontSize: "6px", color: "#4CAF50", marginTop: "2px" }}>✅ COMPLETADO</div>}
             </div>
           )}
         </div>
