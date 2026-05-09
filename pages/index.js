@@ -20,118 +20,84 @@ function isAnswerCorrect(input, correctAnswer, letter) {
   const inputLower = input.toLowerCase().trim();
   const correctLower = correctAnswer.toLowerCase();
   
-  // Special case for Brahim Díaz - accept multiple variations
+  // Brahim Díaz
   if (correctLower === "brahim díaz" || correctLower === "brahim diaz") {
-    const validAnswers = [
-      "brahim díaz",
-      "brahim diaz", 
-      "brahim",
-      "díaz",
-      "diaz"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
+    const valid = ["brahim díaz", "brahim diaz", "brahim", "díaz", "diaz"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
     return false;
   }
   
-  // Special case for Eduardo Camavinga
+  // Eduardo Camavinga
   if (correctLower === "eduardo camavinga" || correctLower === "camavinga") {
-    const validAnswers = [
-      "eduardo camavinga",
-      "camavinga",
-      "eduardo"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
+    const valid = ["eduardo camavinga", "camavinga", "eduardo"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
     return false;
   }
   
-  // Special case for Ferland Mendy
+  // Ferland Mendy
   if (correctLower === "ferland mendy" || correctLower === "mendy") {
-    const validAnswers = [
-      "ferland mendy",
-      "mendy",
-      "ferland"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
+    const valid = ["ferland mendy", "mendy", "ferland"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
     return false;
   }
   
-  // Special case for Tchouaméni (accept common misspellings)
+  // Tchouaméni
   if (correctLower === "tchouaméni" || correctLower === "tchouameni") {
-    const validAnswers = [
-      "tchouaméni",
-      "tchouameni",
-      "chuamení",
-      "chuameni"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
+    const valid = ["tchouaméni", "tchouameni", "chuamení", "chuameni"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
     return false;
   }
   
-  // Special case for Rodrygo (accept Silva)
-  if (correctLower === "rodrygo") {
-    const validAnswers = [
-      "rodrygo",
-      "silva",
-      "rodrygo silva"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
-    return false;
-  }
+// Rodrygo (accepts: rodrygo, rodry, silva)
+if (correctLower === "rodrygo") {
+  const valid = ["rodrygo", "rodry", "silva", "rodrygo silva"];
+  for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
+  return false;
+}
   
-  // Special case for Alexander-Arnold / Trent
-  if (correctLower === "alexander" || correctLower === "trent") {
-    const validAnswers = [
-      "alexander",
-      "trent",
-      "alexander arnold",
-      "trent alexander arnold"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
-    return false;
-  }
+// Alexander-Arnold / Trent (accepts: trent, alexander, alexander-arnold)
+if (correctLower === "trent") {
+  const valid = ["trent", "alexander", "alexander-arnold", "trent alexander-arnold"];
+  for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
+  return false;
+}
   
-  // Special case for Vinícius Júnior
+  // Vinícius Júnior
   if (correctLower === "vinícius júnior" || correctLower === "vinicius junior") {
-    const validAnswers = [
-      "vinícius júnior",
-      "vinicius junior",
-      "vinícius",
-      "vinicius",
-      "vini"
-    ];
-    for (let valid of validAnswers) {
-      if (levenshtein.get(inputLower, valid) <= 2) {
-        return true;
-      }
-    }
+    const valid = ["vinícius júnior", "vinicius junior", "vinícius", "vinicius", "vini"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
     return false;
   }
   
-  // Default comparison
+  // Raúl Asencio
+  if (correctLower === "raúl asencio" || correctLower === "raul asencio" || correctLower === "asencio") {
+    const valid = ["raúl asencio", "raul asencio", "asencio"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
+    return false;
+  }
+  
+  // Franco Mastantuono
+  if (correctLower === "franco mastantuono" || correctLower === "mastantuono") {
+    const valid = ["franco mastantuono", "mastantuono", "franco"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
+    return false;
+  }
+  
+  // Thibaut Courtois
+  if (correctLower === "thibaut courtois" || correctLower === "courtois") {
+    const valid = ["thibaut courtois", "courtois", "thibaut"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
+    return false;
+  }
+  
+  // Arda Güler
+  if (correctLower === "arda güler" || correctLower === "arda guler" || correctLower === "güler") {
+    const valid = ["arda güler", "arda guler", "güler", "guler", "arda"];
+    for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
+    return false;
+  }
+  
+  // Default
   return levenshtein.get(inputLower, correctLower) <= 2;
 }
 
@@ -247,7 +213,6 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", width: "100%", margin: "10px 0" }}>
       <svg width={size} height={size} style={{ display: "block", maxWidth: "100%", height: "auto" }}>
         <circle cx={center} cy={center} r={radius} fill="#f5f5f5" stroke="#ccc" strokeWidth="2"/>
-        
         <circle cx={center} cy={center} r={38} fill="white" stroke="#2196F3" strokeWidth="3"/>
         <text x={center} y={center - 3} textAnchor="middle" dominantBaseline="middle" fill={time <= 10 ? "#f44336" : "#2196F3"} fontSize={24} fontWeight="bold">{time}</text>
         <text x={center} y={center + 16} textAnchor="middle" dominantBaseline="middle" fill="#666" fontSize={9}>seg</text>
@@ -261,29 +226,12 @@ function CircularRosco({ letters, currentLetter, onLetterClick, time }) {
           
           return (
             <g key={item.letter}>
-              <circle 
-                cx={x} 
-                cy={y} 
-                r={buttonRadius} 
-                fill={getButtonColor(item)} 
-                stroke={isCurrent ? "#FF9800" : "#999"} 
-                strokeWidth={isCurrent ? 3 : 1.5}
+              <circle cx={x} cy={y} r={buttonRadius} fill={getButtonColor(item)} stroke={isCurrent ? "#FF9800" : "#999"} strokeWidth={isCurrent ? 3 : 1.5}
                 onClick={() => (item.status === "pending" && !item.passed) && onLetterClick(item.letter)}
-                style={{ cursor: (item.status === "pending" && !item.passed) ? "pointer" : "not-allowed", transition: "all 0.2s" }}
-              />
-              <text 
-                x={x} 
-                y={y} 
-                textAnchor="middle" 
-                dominantBaseline="middle" 
-                fill={getTextColor(item)} 
-                fontSize={fontSize} 
-                fontWeight="bold"
+                style={{ cursor: (item.status === "pending" && !item.passed) ? "pointer" : "not-allowed", transition: "all 0.2s" }}/>
+              <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fill={getTextColor(item)} fontSize={fontSize} fontWeight="bold"
                 style={{ cursor: (item.status === "pending" && !item.passed) ? "pointer" : "not-allowed", userSelect: "none" }}
-                onClick={() => (item.status === "pending" && !item.passed) && onLetterClick(item.letter)}
-              >
-                {item.letter}
-              </text>
+                onClick={() => (item.status === "pending" && !item.passed) && onLetterClick(item.letter)}>{item.letter}</text>
             </g>
           );
         })}
@@ -412,9 +360,7 @@ export default function Game() {
     setTimeout(() => setShowAnswer(false), 3000);
     setInput("");
     setTime(QUESTION_TIME);
-    if (completed) {
-      setTimeout(() => setGameFinished(true), 2000);
-    }
+    if (completed) setTimeout(() => setGameFinished(true), 2000);
   };
 
   const handleCorrectAnswer = () => {
@@ -550,7 +496,6 @@ export default function Game() {
       return;
     }
     
-    // Use the flexible answer checker
     const isCorrect = isAnswerCorrect(input, item.answer, item.letter);
     
     if (isCorrect) handleCorrectAnswer();
@@ -586,17 +531,11 @@ export default function Game() {
           <meta httpEquiv="Expires" content="0" />
         </Head>
         <div style={{ textAlign: "center", padding: "20px", fontFamily: "system-ui", maxWidth: "600px", margin: "0 auto" }}>
-          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>
-            ✅ Versión {VERSION}
-          </div>
-          <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>
-            🗑️ Clear Cache & Force Reload
-          </button>
+          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "8px", borderRadius: "8px", marginBottom: "15px", fontSize: "12px" }}>✅ Versión {VERSION}</div>
+          <button onClick={clearCacheAndReload} style={{ marginBottom: "20px", padding: "10px 20px", fontSize: "14px", backgroundColor: "#FF9800", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>🗑️ Clear Cache & Force Reload</button>
           <h1 style={{ fontSize: "clamp(32px, 8vw, 48px)" }}>🎙️ Pasapalabra</h1>
           <h2 style={{ fontSize: "clamp(24px, 6vw, 36px)", color: "#4CAF50", marginBottom: "30px" }}>Real Madrid 2025-2026 Edition 🏆</h2>
-          
           <button onClick={startGame} style={{ padding: "15px 30px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🎮 Empezar Partida</button>
-          
           <div style={{ textAlign: "left", backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "15px", marginTop: "30px" }}>
             <h3>📖 Reglas:</h3>
             <ul style={{ lineHeight: 1.8 }}>
@@ -607,10 +546,9 @@ export default function Game() {
               <li>🔄 2da ronda: SOLO letras pasadas se intentan</li>
               <li>🏆 Completa todo el rosco para ganar</li>
               <li>⏱️ 30 segundos por pregunta</li>
-              <li>📝 Se aceptan variaciones de nombres (ej: "Brahim", "Díaz" o "Brahim Díaz")</li>
+              <li>📝 Se aceptan variaciones de nombres</li>
             </ul>
           </div>
-          
           <div style={{ marginTop: "30px", padding: "20px", backgroundColor: "#f9f9f9", borderRadius: "10px" }}>
             <p style={{ fontSize: "14px", fontWeight: "bold" }}>Designed by Armando Guillen - Copyright 2026</p>
             <p style={{ fontSize: "12px" }}>¡Hala Madrid! 🤍</p>
@@ -636,28 +574,12 @@ export default function Game() {
         <div style={{ fontFamily: "system-ui", padding: "20px", maxWidth: "700px", margin: "0 auto" }}>
           <h1 style={{ textAlign: "center" }}>🏆 RESULTADOS FINALES 🏆</h1>
           <h2 style={{ textAlign: "center", color: "#2196F3" }}>🎉 ¡Felicidades! 🎉</h2>
-          
           <div style={{ overflowX: "auto", marginBottom: "30px" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", backgroundColor: "#fff", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-              <thead>
-                <tr>
-                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th>
-                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th>
-                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th>
-                  <th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold", fontSize: "24px" }}>{correctCount} / {TOTAL_LETTERS}</td>
-                  <td style={{ padding: "12px", textAlign: "center", color: "#f44336", fontSize: "24px" }}>{wrongCount}</td>
-                  <td style={{ padding: "12px", textAlign: "center", color: "#FFC107", fontSize: "24px" }}>{passedCount}</td>
-                  <td style={{ padding: "12px", textAlign: "center", fontSize: "28px", fontWeight: "bold", color: "#2196F3" }}>{score}</td>
-                </tr>
-              </tbody>
+              <thead><tr><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>✅ Correctas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>❌ Incorrectas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⏭️ Pasadas</th><th style={{ padding: "12px", backgroundColor: "#2196F3", color: "white" }}>⭐ Puntuación</th></tr></thead>
+              <tbody><tr><td style={{ padding: "12px", textAlign: "center", color: "#4CAF50", fontWeight: "bold", fontSize: "24px" }}>{correctCount} / {TOTAL_LETTERS}</td><td style={{ padding: "12px", textAlign: "center", color: "#f44336", fontSize: "24px" }}>{wrongCount}</td><td style={{ padding: "12px", textAlign: "center", color: "#FFC107", fontSize: "24px" }}>{passedCount}</td><td style={{ padding: "12px", textAlign: "center", fontSize: "28px", fontWeight: "bold", color: "#2196F3" }}>{score}</td></tr></tbody>
             </table>
           </div>
-          
           <div style={{ backgroundColor: "#f5f5f5", padding: "20px", borderRadius: "10px", margin: "30px 0" }}>
             <h3>📋 Resumen del Juego:</h3>
             <p>🎯 Has acertado {correctCount} de {TOTAL_LETTERS} letras</p>
@@ -665,17 +587,9 @@ export default function Game() {
             <p>⏱️ Tiempo máximo por pregunta: 30 segundos</p>
             <p>🏆 ¡Gracias por jugar! ¡Hala Madrid!</p>
           </div>
-          
           <button onClick={() => { setSetup(true); setGame(null); setGameFinished(false); }} style={{ width: "100%", padding: "15px", fontSize: "18px", cursor: "pointer", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "10px", fontWeight: "bold" }}>🔄 Jugar de Nuevo</button>
-          
-          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center" }}>
-            <button onClick={clearCacheAndReload} style={{ padding: "8px 16px", fontSize: "12px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>🗑️ Clear Cache & Reload</button>
-          </div>
-          
-          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}>
-            <p>Designed by Armando Guillen - Copyright 2026</p>
-            <p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p>
-          </div>
+          <div style={{ marginTop: "30px", padding: "15px", textAlign: "center" }}><button onClick={clearCacheAndReload} style={{ padding: "8px 16px", fontSize: "12px", backgroundColor: "#666", color: "white", border: "none", borderRadius: "6px", cursor: "pointer" }}>🗑️ Clear Cache & Reload</button></div>
+          <div style={{ marginTop: "20px", padding: "15px", textAlign: "center", fontSize: "11px", color: "#666" }}><p>Designed by Armando Guillen - Copyright 2026</p><p>(no association with Pasapalabra by ITV Studios Iberia or The Alphabet Game)</p></div>
         </div>
       </>
     );
@@ -695,11 +609,7 @@ export default function Game() {
         <meta httpEquiv="Expires" content="0" />
       </Head>
       <div style={{ fontFamily: "system-ui", padding: "8px", maxWidth: "500px", margin: "0 auto" }}>
-        {showVersion && (
-          <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>
-            ✅ Versión {VERSION} | {game.round === 1 ? `${pendingCount + passedCount} letras restantes` : "Segunda ronda"}
-          </div>
-        )}
+        {showVersion && <div style={{ backgroundColor: "#4CAF50", color: "white", padding: "3px 6px", borderRadius: "4px", marginBottom: "6px", textAlign: "center", fontSize: "8px" }}>✅ Versión {VERSION} | {game.round === 1 ? `${pendingCount + passedCount} letras restantes` : "Segunda ronda"}</div>}
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "6px", marginBottom: "5px" }}>
           <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: "#E3F2FD", border: "2px solid #2196F3" }}>
@@ -707,11 +617,7 @@ export default function Game() {
             <div style={{ fontSize: "32px", fontWeight: "bold", color: "#2196F3" }}>{game.score}</div>
             <div style={{ fontSize: "8px" }}>✅ {game.rosco.filter(r => r.status === "correct").length} / {TOTAL_LETTERS}</div>
           </div>
-          
-          <div style={{ flex: 1, textAlign: "center", padding: "3px" }}>
-            <div style={{ fontSize: "10px", color: "#666" }}>Ronda {game.round}</div>
-          </div>
-          
+          <div style={{ flex: 1, textAlign: "center", padding: "3px" }}><div style={{ fontSize: "10px", color: "#666" }}>Ronda {game.round}</div></div>
           <div style={{ flex: 1, textAlign: "center", padding: "5px", borderRadius: "8px", backgroundColor: "#FFF3E0" }}>
             <div style={{ fontWeight: "bold", fontSize: "11px" }}>📊 ESTADÍSTICAS</div>
             <div style={{ fontSize: "11px" }}>❌ {game.rosco.filter(r => r.status === "wrong").length} fallos</div>
@@ -728,13 +634,7 @@ export default function Game() {
 
         {!showAnswer && currentItem.status === "pending" && !currentItem.passed && (
           <div style={{ marginBottom: "10px" }}>
-            <input 
-              style={{ width: "100%", padding: "10px", fontSize: "13px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "6px" }} 
-              value={input} 
-              onChange={(e) => setInput(e.target.value)} 
-              placeholder="Escribe tu respuesta..." 
-              autoFocus 
-            />
+            <input style={{ width: "100%", padding: "10px", fontSize: "13px", borderRadius: "8px", border: "2px solid #ccc", outline: "none", boxSizing: "border-box", marginBottom: "6px" }} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Escribe tu respuesta..." autoFocus />
             <div style={{ display: "flex", gap: "6px", flexDirection: "row" }}>
               <button onClick={answer} style={{ flex: 1, padding: "10px", fontSize: "13px", fontWeight: "bold", backgroundColor: "#2196F3", color: "white", border: "none", borderRadius: "8px", cursor: "pointer" }}>📝 Responder</button>
               <button onClick={handlePasapalabra} style={{ flex: 1, padding: "10px", fontSize: "13px", fontWeight: "bold", backgroundColor: "#FFC107", color: "#333", border: "none", borderRadius: "8px", cursor: "pointer" }}>⏭️ PASAPALABRA</button>
@@ -742,11 +642,7 @@ export default function Game() {
           </div>
         )}
 
-        {message.text && (
-          <div style={{ marginBottom: "8px", padding: "6px", borderRadius: "6px", textAlign: "center", fontWeight: "bold", fontSize: "10px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>
-            {message.text}
-          </div>
-        )}
+        {message.text && <div style={{ marginBottom: "8px", padding: "6px", borderRadius: "6px", textAlign: "center", fontWeight: "bold", fontSize: "10px", backgroundColor: message.type === "success" ? "#C8E6C9" : message.type === "error" ? "#FFCDD2" : "#BBDEFB" }}>{message.text}</div>}
 
         <div style={{ display: "flex", justifyContent: "center", gap: "6px", fontSize: "7px", borderTop: "1px solid #ddd", paddingTop: "6px", flexWrap: "wrap" }}>
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "2px" }}></span> Sin responder</div>
@@ -756,9 +652,7 @@ export default function Game() {
           <div><span style={{ display: "inline-block", width: "8px", height: "8px", backgroundColor: "#e0e0e0", borderRadius: "50%", marginRight: "2px", border: "2px solid #FF9800" }}></span> Actual</div>
         </div>
         
-        <div style={{ textAlign: "center", marginTop: "6px" }}>
-          <button onClick={clearCacheAndReload} style={{ padding: "2px 6px", fontSize: "7px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>🗑️ Force Reload</button>
-        </div>
+        <div style={{ textAlign: "center", marginTop: "6px" }}><button onClick={clearCacheAndReload} style={{ padding: "2px 6px", fontSize: "7px", backgroundColor: "#999", color: "white", border: "none", borderRadius: "3px", cursor: "pointer" }}>🗑️ Force Reload</button></div>
       </div>
     </>
   );

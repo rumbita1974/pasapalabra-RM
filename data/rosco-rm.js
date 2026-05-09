@@ -65,7 +65,7 @@ export const ROSCO_DB = [
   { 
     letter: "E", 
     answer: "Eduardo Camavinga", 
-    clue: "Con la E: El chico para todo que mañana te juega de lateral y pasado te opera de apendicitis." 
+    clue: "Con la E: Frances rastafari que acumula más tarjetas rojas que titularidades." 
   },
 
   { 
@@ -90,12 +90,12 @@ export const ROSCO_DB = [
   // G
   { 
     letter: "G", 
-    answer: "Arda Güler", 
+    answer: "Arda Guler", 
     clue: "Con la G: El diamante turco que Ancelotti guardaba en la caja fuerte por si se desgasta con el aire." 
   },
   { 
     letter: "G", 
-    answer: "Arda Güler", 
+    answer: "Arda Guler", 
     clue: "Con la G: El niño turco que da más vueltas por el campo que carne de Kebab." 
   },
   
@@ -224,13 +224,13 @@ export const ROSCO_DB = [
   // S
   { 
     letter: "S", 
-    answer: "Rodrygo Silva", 
+    answer: "Rodrygo", 
     clue: "Con la S (apellido): Brasileño que aparece en las remontadas, pero desaparece en los partidos de las 2 de la tarde." 
   },
 
   { 
     letter: "S", 
-    answer: "Rodrygo Silva", 
+    answer: "Rodrygo", 
     clue: "Con la S (apellido): Delantero brasileño que se salva de la quema por llevar 3 meses en enfermería (y va para 6!)" 
   },
 
@@ -276,13 +276,13 @@ export const ROSCO_DB = [
   // X
   { 
     letter: "X", 
-    answer: "Alexander Trent", 
+    answer: "Trent", 
     clue: "Contiene la X: El lateral inglés que defiende menos que un semáforo en amarillo." 
   },
 
   { 
     letter: "X", 
-    answer: "Alexander Trent", 
+    answer: "Trent", 
     clue: "Contiene la X: Inglés que vino a Madrid a tirar físico con Bellingham." 
   },
 
