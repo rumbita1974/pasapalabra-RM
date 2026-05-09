@@ -13,6 +13,129 @@ const QUESTION_TIME = 30;
 const VERSION = "1.0.0";
 
 /* =========================
+   HELPER: Flexible Answer Checker
+   ========================= */
+
+function isAnswerCorrect(input, correctAnswer, letter) {
+  const inputLower = input.toLowerCase().trim();
+  const correctLower = correctAnswer.toLowerCase();
+  
+  // Special case for Brahim Díaz - accept multiple variations
+  if (correctLower === "brahim díaz" || correctLower === "brahim diaz") {
+    const validAnswers = [
+      "brahim díaz",
+      "brahim diaz", 
+      "brahim",
+      "díaz",
+      "diaz"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Special case for Eduardo Camavinga
+  if (correctLower === "eduardo camavinga" || correctLower === "camavinga") {
+    const validAnswers = [
+      "eduardo camavinga",
+      "camavinga",
+      "eduardo"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Special case for Ferland Mendy
+  if (correctLower === "ferland mendy" || correctLower === "mendy") {
+    const validAnswers = [
+      "ferland mendy",
+      "mendy",
+      "ferland"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Special case for Tchouaméni (accept common misspellings)
+  if (correctLower === "tchouaméni" || correctLower === "tchouameni") {
+    const validAnswers = [
+      "tchouaméni",
+      "tchouameni",
+      "chuamení",
+      "chuameni"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Special case for Rodrygo (accept Silva)
+  if (correctLower === "rodrygo") {
+    const validAnswers = [
+      "rodrygo",
+      "silva",
+      "rodrygo silva"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Special case for Alexander-Arnold / Trent
+  if (correctLower === "alexander" || correctLower === "trent") {
+    const validAnswers = [
+      "alexander",
+      "trent",
+      "alexander arnold",
+      "trent alexander arnold"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Special case for Vinícius Júnior
+  if (correctLower === "vinícius júnior" || correctLower === "vinicius junior") {
+    const validAnswers = [
+      "vinícius júnior",
+      "vinicius junior",
+      "vinícius",
+      "vinicius",
+      "vini"
+    ];
+    for (let valid of validAnswers) {
+      if (levenshtein.get(inputLower, valid) <= 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  // Default comparison
+  return levenshtein.get(inputLower, correctLower) <= 2;
+}
+
+/* =========================
    HELPERS
 ========================= */
 
@@ -426,7 +549,10 @@ export default function Game() {
       showMessage("⚠️ Esta letra no está disponible", "error", 1500);
       return;
     }
-    const isCorrect = levenshtein.get(input.toLowerCase(), item.answer.toLowerCase()) <= 2;
+    
+    // Use the flexible answer checker
+    const isCorrect = isAnswerCorrect(input, item.answer, item.letter);
+    
     if (isCorrect) handleCorrectAnswer();
     else handleWrongAnswer();
   };
@@ -481,6 +607,7 @@ export default function Game() {
               <li>🔄 2da ronda: SOLO letras pasadas se intentan</li>
               <li>🏆 Completa todo el rosco para ganar</li>
               <li>⏱️ 30 segundos por pregunta</li>
+              <li>📝 Se aceptan variaciones de nombres (ej: "Brahim", "Díaz" o "Brahim Díaz")</li>
             </ul>
           </div>
           

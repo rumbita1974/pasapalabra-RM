@@ -51,78 +51,51 @@ export const ROSCO_DB = [
   // D
   { 
     letter: "D", 
-    answer: "Díaz", 
+    answer: "Brahim Díaz", 
     clue: "Con la D: El malagueño-marroquí que regatea hasta a su propia sombra para acabar en el banquillo." 
   },
-    { 
-    letter: "D", 
-    answer: "Brahim", 
-    clue: "Con la D: El malagueño-marroquí que regatea hasta a su propia sombra para acabar en el banquillo." 
-  },
+ 
   { 
     letter: "D", 
-    answer: "Díaz", 
-    clue: "Con la D: Malagueño-marroquí que gana una copa Africa fallando el penal decisivo." 
-  },
-    { 
-    letter: "D", 
-    answer: "Brahim", 
+    answer: "Brahim Díaz", 
     clue: "Con la D: Malagueño-marroquí que gana una copa Africa fallando el penal decisivo." 
   },
   
   // E
   { 
     letter: "E", 
-    answer: "Eduardo", 
+    answer: "Eduardo Camavinga", 
     clue: "Con la E: El chico para todo que mañana te juega de lateral y pasado te opera de apendicitis." 
   },
-    { 
-    letter: "E", 
-    answer: "Camavinga", 
-    clue: "Con la E: El chico para todo que mañana te juega de lateral y pasado te opera de apendicitis." 
-  },
+
   { 
     letter: "E", 
-    answer: "Eduardo", 
-    clue: "Con la E: El rey de las tarjetas amarillas incapaz de dar un pase al frente." 
-  },
-    { 
-    letter: "E", 
-    answer: "Camavinga", 
+    answer: "Eduardo Camavinga", 
     clue: "Con la E: El rey de las tarjetas amarillas incapaz de dar un pase al frente." 
   },
   
   // F
   { 
     letter: "F",
-    answer: "Ferland", 
+    answer: "Ferland Mendy", 
     clue: "Con la F: El central francés que no sabe lo que es un centro al área." 
   },
-    { 
-    letter: "F",
-    answer: "Mendy", 
-    clue: "Con la F: El central francés que no sabe lo que es un centro al área." 
-  },
+
   { 
     letter: "F", 
-    answer: "Ferland", 
+    answer: "Ferland Mendy", 
     clue: "Con la F: El central francés cuyas rodillas están hechas de cristal de Bohemia." 
   },
-    { 
-    letter: "F", 
-    answer: "Mendy", 
-    clue: "Con la F: El central francés cuyas rodillas están hechas de cristal de Bohemia." 
-  },
-  
+
   // G
   { 
     letter: "G", 
-    answer: "Güler", 
+    answer: "Arda Güler", 
     clue: "Con la G: El diamante turco que Ancelotti guardaba en la caja fuerte por si se desgasta con el aire." 
   },
   { 
     letter: "G", 
-    answer: "Güler", 
+    answer: "Arda Güler", 
     clue: "Con la G: El niño turco que da más vueltas por el campo que carne de Kebab." 
   },
   
@@ -141,24 +114,24 @@ export const ROSCO_DB = [
   // I
   { 
     letter: "I", 
-    answer: "Courtois", 
+    answer: "Thibaut Courtois", 
     clue: "Contiene la I de Infranqueable, porque no se me ocurría otra cosa 😂: Portero al que debemos no quedar en puestos de descenso en las últimas 2 temporadas." 
   },
   { 
     letter: "I", 
-    answer: "Courtois", 
+    answer: "Thibaut Courtois", 
     clue: "Contiene la I de Infranqueable, porque no se me ocurría otra cosa 😂: Portero que trabaja más que obrero en vísperas de festivo." 
   },
   
   // J
   { 
     letter: "J", 
-    answer: "Asencio", 
+    answer: "Raúl Asencio", 
     clue: "Apellido de la joya canaria 😉: Defensor que sube al primer equipo porque no queda nadie vivo en defensa." 
   },
   { 
     letter: "J", 
-    answer: "Asencio", 
+    answer: "Raúl Asencio", 
     clue: "Apellido de la joya canaria 😉: Defensa central que es titular mediante rituales de vudú contra los ligamentos de sus compañeros." 
   },
   
@@ -194,24 +167,16 @@ export const ROSCO_DB = [
   // N
   { 
     letter: "N", 
-    answer: "Mastantuono", 
+    answer: "Franco Mastantuono", 
     clue: "Nombre de dictador español, de origen argentino 😂: Delantero fichado por video trucado de AI que no le mete un gol al arcoiris." 
   },
-    { 
-    letter: "N", 
-    answer: "Franco", 
-    clue: "Nombre de dictador español, de origen argentino 😂: Delantero fichado por video trucado de AI que no le mete un gol al arcoiris." 
-  },
+
   { 
     letter: "N", 
-    answer: "Mastantuono", 
+    answer: "Franco Mastantuono", 
     clue: "Nombre de dictador español, de origen argentino 😂: Delantero cojo que ha debido ser cedido en vez de Endrick." 
   },
-    { 
-    letter: "N", 
-    answer: "Franco", 
-    clue: "Nombre de dictador español, de origen argentino 😂: Delantero cojo que ha debido ser cedido en vez de Endrick." 
-  },
+
   
   // O
   { 
@@ -259,24 +224,16 @@ export const ROSCO_DB = [
   // S
   { 
     letter: "S", 
-    answer: "Rodrygo", 
-    clue: "Con la S: Brasileño que aparece en las remontadas, pero desaparece en los partidos de las 2 de la tarde." 
+    answer: "Rodrygo Silva", 
+    clue: "Con la S (apellido): Brasileño que aparece en las remontadas, pero desaparece en los partidos de las 2 de la tarde." 
   },
-    { 
-    letter: "S", 
-    answer: "Silva", 
-    clue: "Con la S: Brasileño que aparece en las remontadas, pero desaparece en los partidos de las 2 de la tarde." 
-  },
+
   { 
     letter: "S", 
-    answer: "Rodrygo", 
-    clue: "Con la S: Delantero brasileño que se salva de la quema por llevar 3 meses en enfermería (y va para 6!)" 
+    answer: "Rodrygo Silva", 
+    clue: "Con la S (apellido): Delantero brasileño que se salva de la quema por llevar 3 meses en enfermería (y va para 6!)" 
   },
-    { 
-    letter: "S", 
-    answer: "Silva", 
-    clue: "Con la S: Delantero brasileño que se salva de la quema por llevar 3 meses en enfermería (y va para 6!)" 
-  },
+
   
   // T
   { 
@@ -284,21 +241,13 @@ export const ROSCO_DB = [
     answer: "Tchouaméni", 
     clue: "Con la T: Centrocampista francés experto en artes marciales que caza pajaritos uruguayos." 
   },
-    { 
-    letter: "T", 
-    answer: "Chuamení", 
-    clue: "Con la T: Centrocampista francés experto en artes marciales que caza pajaritos uruguayos." 
-  },
+
   { 
     letter: "T", 
     answer: "Tchouaméni", 
     clue: "Con la T: Centrocampista francés al que temen más sus compañeros que sus rivales." 
   },
-    { 
-    letter: "T", 
-    answer: "Chuamení", 
-    clue: "Con la T: Centrocampista francés al que temen más sus compañeros que sus rivales." 
-  },
+
   
   // U
   { 
@@ -327,24 +276,16 @@ export const ROSCO_DB = [
   // X
   { 
     letter: "X", 
-    answer: "Alexander", 
+    answer: "Alexander Trent", 
     clue: "Contiene la X: El lateral inglés que defiende menos que un semáforo en amarillo." 
   },
-    { 
-    letter: "X", 
-    answer: "Trent", 
-    clue: "Contiene la X: El lateral inglés que defiende menos que un semáforo en amarillo." 
-  },
+
   { 
     letter: "X", 
-    answer: "Alexander", 
+    answer: "Alexander Trent", 
     clue: "Contiene la X: Inglés que vino a Madrid a tirar físico con Bellingham." 
   },
-  { 
-    letter: "X", 
-    answer: "Trent", 
-    clue: "Contiene la X: Inglés que vino a Madrid a tirar físico con Bellingham." 
-  },  
+
   
   { 
     letter: "Y", 
