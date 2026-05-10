@@ -56,7 +56,7 @@ if (correctLower === "rodrygo") {
 }
   
 // Alexander-Arnold / Trent (accepts: trent, alexander, alexander-arnold)
-if (correctLower === "Xabi" || correctLower === xabi alonso") {
+if (correctLower === "Xabi") {
   const valid = ["Xabi", "Alonso", "Xabi Alonso"];
   for (let v of valid) if (levenshtein.get(inputLower, v) <= 2) return true;
   return false;
