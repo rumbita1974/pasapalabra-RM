@@ -158,12 +158,7 @@ export const ROSCO_DB = [
     answer: "Mbappé", 
     clue: "Con la M: Jugador francés que ha conseguido pleno de nadapletes en la Champions con PSG y Real Madrid." 
   },
-   { 
-    letter: "Ñ", 
-    answer: "España", 
-    clue: "Contiene la Ñ: País Europeo donde juega un equipo catalán que compró al jefe de los árbitros durante 18 temporadas haciéndose con 23 títulos nacionales." 
-  },
-  
+
   // N
   { 
     letter: "N", 
@@ -176,8 +171,13 @@ export const ROSCO_DB = [
     answer: "Franco Mastantuono", 
     clue: "Por la N de Nombre de dictador español, de origen argentino 😂: Delantero cojo que ha debido ser cedido en vez de Endrick." 
   },
-
+   { 
+    letter: "Ñ", 
+    answer: "España", 
+    clue: "Contiene la Ñ: País europeo donde juega un equipo catalán que compró al jefe de los árbitros durante 18 temporadas haciéndose con 23 títulos nacionales." 
+  },
   
+
   // O
   { 
     letter: "O", 
