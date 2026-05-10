@@ -6,29 +6,29 @@ export const ROSCO_DB = [
   { 
     letter: "A", 
     answer: "Alaba", 
-    clue: "Con la A: El inquilino Austríaco VIP del gimnasio que cobra por silla alquilada." 
+    clue: "Con la A: Defensa central austríaco que es el inquilino VIP  del gimnasio que cobra por silla alquilada." 
   },
   { 
     letter: "A", 
     answer: "Alaba", 
-    clue: "Con la A: El defensa Austríaco que defiende más su puesto en enfermeria que el área." 
+    clue: "Con la A: Defensa central austríaco que defiende más su puesto en enfermeria el área chica." 
   },
   { 
     letter: "A", 
     answer: "Arbeloa", 
-    clue: "Con la A: El entrenador que se toma los partidos como si fueran una siesta." 
+    clue: "Con la A: Entrenador que transmite más entusiamo que una rotonda rodeada por conos." 
   },
   { 
     letter: "A", 
     answer: "Arbeloa", 
-    clue: "Con la A: El pacificador de un vestuario que se ha convertido en un ring de boxeo." 
+    clue: "Con la A: Míster llamado a ser el pacificador de un vestuario que se ha convertido en un ring de boxeo." 
   },
   
   // B
   { 
     letter: "B", 
     answer: "Bellingham", 
-    clue: "Con la B: El modelo inglés de pasarela que a veces juega de mediocentro." 
+    clue: "Con la B: Modelo de pasarela inglés que a veces juega de mediocentro." 
   },
   { 
     letter: "B", 
@@ -45,94 +45,94 @@ export const ROSCO_DB = [
   { 
     letter: "C", 
     answer: "Carvajal", 
-    clue: "Con la C: El único lateral que se lesiona celebrando que no está lesionado." 
+    clue: "Con la C: Capitán que se lesiona celebrando que no está lesionado." 
   },
   
   // D
   { 
     letter: "D", 
     answer: "Brahim Díaz", 
-    clue: "Con la D: El malagueño-marroquí que regatea hasta a su propia sombra para acabar en el banquillo." 
+    clue: "Con la D (apellido): Delantero malagueño-marroquí que regatea hasta a su propia sombra para acabar en el banquillo." 
   },
  
   { 
     letter: "D", 
     answer: "Brahim Díaz", 
-    clue: "Con la D: Malagueño-marroquí que gana una copa Africa fallando el penal decisivo." 
+    clue: "Con la D (apellido): Delantero malagueño-marroquí que gana una copa Africa fallando el penal decisivo." 
   },
   
   // E
   { 
     letter: "E", 
     answer: "Eduardo Camavinga", 
-    clue: "Con la E: Frances rastafari que acumula más tarjetas rojas que titularidades." 
+    clue: "Con la E: Nombre del francés rastafari que acumula más tarjetas rojas que titularidades." 
   },
 
   { 
     letter: "E", 
     answer: "Eduardo Camavinga", 
-    clue: "Con la E: El rey de las tarjetas amarillas incapaz de dar un pase al frente." 
+    clue: "Con la E: Nombre del jugador francés melenudo que es el rey den expulsiones incapaz de dar un pase al frente." 
   },
   
   // F
   { 
     letter: "F",
     answer: "Ferland Mendy", 
-    clue: "Con la F: El central francés que no sabe lo que es un centro al área." 
+    clue: "Con la F: Nombre del central francés que no sabe lo que es un centro al área." 
   },
 
   { 
     letter: "F", 
     answer: "Ferland Mendy", 
-    clue: "Con la F: El central francés cuyas rodillas están hechas de cristal de Bohemia." 
+    clue: "Con la F: Nombre del central francés cuyas rodillas están hechas de cristal de Bohemia." 
   },
 
   // G
   { 
     letter: "G", 
     answer: "Arda Guler", 
-    clue: "Con la G: El diamante turco que Ancelotti guardaba en la caja fuerte por si se desgasta con el aire." 
+    clue: "Con la G: Diamante turco que Ancelotti guardaba en la caja fuerte por si se desgasta con el aire." 
   },
   { 
     letter: "G", 
     answer: "Arda Guler", 
-    clue: "Con la G: El niño turco que da más vueltas por el campo que carne de Kebab." 
+    clue: "Con la G: Niño turco que da más vueltas por el campo que carne de Kebab." 
   },
   
   // H
   { 
     letter: "H", 
     answer: "Huijsen", 
-    clue: "Con la H: El central hispano-holandés que nadie sabe si es para el Castilla o para rellenar el álbum de cromos." 
+    clue: "Con la H: Defensa central hispano-holandés que nadie sabe si es para el Castilla o para rellenar el álbum de cromos." 
   },
   { 
     letter: "H", 
     answer: "Huijsen", 
-    clue: "Con la H: El central hispano-holandés que es tan alto que ve los goles venir desde el parking." 
+    clue: "Con la H: Defensa central hispano-holandés que es tan alto que ve los goles venir desde el parking." 
   },
   
   // I
   { 
     letter: "I", 
     answer: "Thibaut Courtois", 
-    clue: "Contiene la I de Infranqueable, porque no se me ocurría otra cosa 😂: Portero al que debemos no quedar en puestos de descenso en las últimas 2 temporadas." 
+    clue: "Por la I de Infranqueable, porque no le conseguí otra letra 😂: Portero al que debemos no quedar en puestos de descenso en las últimas 2 temporadas." 
   },
   { 
     letter: "I", 
     answer: "Thibaut Courtois", 
-    clue: "Contiene la I de Infranqueable, porque no se me ocurría otra cosa 😂: Portero que trabaja más que obrero en vísperas de festivo." 
+    clue: "Por la I de Infranqueable, porque no le conseguí otra letra 😂: Portero que trabaja más que obrero en vísperas de festivo." 
   },
   
   // J
   { 
     letter: "J", 
     answer: "Raúl Asencio", 
-    clue: "Apellido de la joya canaria 😉: Defensor que sube al primer equipo porque no queda nadie vivo en defensa." 
+    clue: "Por la J de Joya canaria 😉: Defensor que sube al primer equipo porque no queda nadie vivo en defensa." 
   },
   { 
     letter: "J", 
     answer: "Raúl Asencio", 
-    clue: "Apellido de la joya canaria 😉: Defensa central que es titular mediante rituales de vudú contra los ligamentos de sus compañeros." 
+    clue: "Por la J de Joya canaria 😉: Defensa central que es titular mediante rituales de vudú contra los ligamentos de sus compañeros." 
   },
   
   // L
@@ -151,30 +151,30 @@ export const ROSCO_DB = [
   { 
     letter: "M", 
     answer: "Mbappé", 
-    clue: "Con la M: El francés que tardó siete años en encontrar el aeropuerto de Barajas para evitar que el Madrid gane otra Champions." 
+    clue: "Con la M: Jugador francés que tardó siete años en encontrar el aeropuerto de Barajas para evitar que el Madrid gane otra Champions." 
   },
   { 
     letter: "M", 
     answer: "Mbappé", 
-    clue: "Con la M: El dictador francés que ha logrado más nadapletes en las ligas francesa y española." 
+    clue: "Con la M: Jugador francés que ha conseguido pleno de nadapletes en la Champions con PSG y Real Madrid." 
   },
    { 
     letter: "Ñ", 
     answer: "España", 
-    clue: "Con la Ñ: País Europeo donde juega un equipo catalán que compró al jefe de los árbitros durante 18 temporadas haciéndose con 23 títulos nacionales." 
+    clue: "Contiene la Ñ: País Europeo donde juega un equipo catalán que compró al jefe de los árbitros durante 18 temporadas haciéndose con 23 títulos nacionales." 
   },
   
   // N
   { 
     letter: "N", 
     answer: "Franco Mastantuono", 
-    clue: "Nombre de dictador español, de origen argentino 😂: Delantero fichado por video trucado de AI que no le mete un gol al arcoiris." 
+    clue: "Por la N de Nombre de dictador español, de origen argentino 😂: Delantero fichado por video trucado de AI que no le mete un gol al arcoiris." 
   },
 
   { 
     letter: "N", 
     answer: "Franco Mastantuono", 
-    clue: "Nombre de dictador español, de origen argentino 😂: Delantero cojo que ha debido ser cedido en vez de Endrick." 
+    clue: "Por la N de Nombre de dictador español, de origen argentino 😂: Delantero cojo que ha debido ser cedido en vez de Endrick." 
   },
 
   
@@ -182,14 +182,14 @@ export const ROSCO_DB = [
   { 
     letter: "O", 
     answer: "Gonzalo", 
-    clue: "Otro delantero 😂: Dícese del canterano que vive de las rentas del Mundialito, pero que Arbeloa usa para calentar su silla en el banquillo" 
+    clue: "Por la O de Otro delantero 😂: Dícese del canterano que vive de las rentas del Mundialito y que Arbeloa usa para calentar su silla en el banquillo" 
   },
   
   // P
   { 
     letter: "P", 
     answer: "Pitarch", 
-    clue: "Con la P: El chaval del Castilla que aparece en la lista para que su madre esté orgullosa." 
+    clue: "Con la P: Jugador del Castilla que aparece en la lista para que su madre esté orgullosa." 
   },
   { 
     letter: "P", 
@@ -201,12 +201,12 @@ export const ROSCO_DB = [
   { 
     letter: "Q", 
     answer: "Carreras", 
-    clue: "Que corre pero no mucho 😂: Lateral que se chiva de que el loco de Rudiger le abofetee." 
+    clue: "Por la Q de Que suena a que corre, pero no mucho 😂: Lateral que se chiva de que el loco de Rudiger le abofetee." 
   },
   { 
     letter: "Q", 
     answer: "Carreras", 
-    clue: "Que corre pero no mucho 😂: Lateral que nadie sabe como llegó al primer equipo, pero que sirve de pera de boxeo a Rudiger" 
+    clue: "Por la Q de Que suena a que corre, pero no mucho 😂: Lateral que nadie sabe como llegó al primer equipo, pero que sirve de pera de boxeo a Rudiger" 
   },
   
   // R
@@ -276,14 +276,14 @@ export const ROSCO_DB = [
   // X
   { 
     letter: "X", 
-    answer: "Trent", 
-    clue: "Contiene la X: El lateral inglés que defiende menos que un semáforo en amarillo." 
+    answer: "Xabi", 
+    clue: "Por la X: Míster al que prometieron entrenar a un equipo de fútbol y se encontró con una guardería." 
   },
 
   { 
     letter: "X", 
-    answer: "Trent", 
-    clue: "Contiene la X: Inglés que vino a Madrid a tirar físico con Bellingham." 
+    answer: "Xabi", 
+    clue: "Por la X: Entrenador ganador de una bundesliga de manera invicta al que unos niñatos le hicieron un golpe de estado en el Madrid." 
   },
 
   
@@ -302,11 +302,11 @@ export const ROSCO_DB = [
   { 
     letter: "Z", 
     answer: "Militão", 
-    clue: "Por la Z de zaguero brasileño 😂: Defensa que confunde el área con una pista de baile de TikTok." 
+    clue: "Por la Z de Zaguero 😂: Defensa brasileño que confunde el área con una pista de baile de TikTok." 
   },
   { 
     letter: "Z", 
     answer: "Militão", 
-    clue: "Por la Z de zaguero brasileño 😂: Central que vive permanentemente en la camilla de fisioterapia." 
+    clue: "Por la Z de Zaguero  😂: Central brasileño que vive permanentemente en la camilla de fisioterapia." 
   }
 ];
